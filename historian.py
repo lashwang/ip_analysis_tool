@@ -39,6 +39,7 @@ import sys
 import time
 from zipfile import ZipFile, is_zipfile
 import arrow
+from openpyxl import Workbook
 
 POWER_DATA_FILE_TIME_OFFSET = 0  # deal with any clock mismatch.
 BLAME_CATEGORY = "wake_lock_in"  # category to assign power blame to.
@@ -1242,10 +1243,21 @@ def close_file_input_string(file_object):
 
 def process_job_events(job_dict):
     for line in job_dict:
-        print line
+        uid = (line[0].split('=')[1]).split(':')[0]
+        if len(uid) == 5:
+            uid = uid.replace('u0a', '100')
+        else:
+            uid = uid.replace('u0a', '10')
+
+        app_name = app_dict[uid]
+        ws.append(["job",app_name,uid,line[0]])
+
 
 
 def main():
+    global app_dict
+    global wb,ws
+
     details_re = re.compile(r"^Details:\scpu=\d+u\+\d+s\s*(\((?P<appCpu>.*)\))?")
     app_cpu_usage_re = re.compile(
         r"(?P<uid>\S+)=(?P<userTime>\d+)u\+(?P<sysTime>\d+)s")
@@ -1287,6 +1299,8 @@ def main():
         "sirq": 0,
         "idle": 0,
     }
+    wb = Workbook()
+    ws = wb.active
 
     if legacy_mode:
         input_string = LegacyFormatConverter().convert(input_file)
@@ -1457,8 +1471,9 @@ def main():
     bhemitter.generate_summary_rows(emit_dict, data_start_time,
                                     data_stop_time)
     # print emit_dict
-    print app_dict
+    # print app_dict
     process_job_events(emit_dict["job"])
+    wb.save("report.xlsx")
 
 
 '''

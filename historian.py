@@ -37,6 +37,9 @@ import StringIO
 import subprocess
 import sys
 import time
+from zipfile import ZipFile,is_zipfile
+
+
 
 POWER_DATA_FILE_TIME_OFFSET = 0  # deal with any clock mismatch.
 BLAME_CATEGORY = "wake_lock_in"  # category to assign power blame to.
@@ -56,6 +59,9 @@ getopt_report_filename = ""
 
 getopt_generate_chart_only = False
 getopt_disable_chart_drawing = False
+
+test_data_path = "data/dumpsys-samsungs8-2017-08-01.txt.zip"
+#test_data_path = "data/dumpsys-samsungs8-2017-08-01.txt"
 
 
 def usage():
@@ -287,7 +293,10 @@ def parse_reset_time(line):
 def is_file_legacy_mode(input_file):
   """Autodetect legacy (K and earlier) format."""
   detection_on = False
-  for line in fileinput.input(input_file):
+
+  file_object = open_file_input_string(input_file)
+
+  for line in file_object:
     if not detection_on and line.startswith("Battery History"):
       detection_on = True
     if not detection_on:
@@ -300,7 +309,7 @@ def is_file_legacy_mode(input_file):
     if "+" not in line_time and "-" not in line_time:
       continue
 
-    fileinput.close()
+    close_file_input_string(file_object)
     return line_time[0] == "-"
   return False
 
@@ -400,7 +409,9 @@ def parse_argv():
     usage()
 
   if not argv_rest:
-    usage()
+    #usage()
+    argv_rest = [test_data_path]
+
 
   return argv_rest
 
@@ -651,12 +662,14 @@ class LegacyFormatConverter(object):
     output_string = ""
     history_start = False
 
-    for line in fileinput.input(input_file):
+    file_object = open_file_input_string(input_file)
+
+    for line in file_object:
       if "dumpstate:" in line:
         self.parse_end_time(line)
         if self._end_time:
           break
-    fileinput.close()
+    close_file_input_string(file_object)
 
     if not self._end_time:
       print "cannot find end time"
@@ -691,7 +704,7 @@ class LegacyFormatConverter(object):
                                      line_state, event_string)
       output_string += newline
 
-    fileinput.close()
+    close_file_input_string(file_object)
     return output_string
 
 
@@ -1211,6 +1224,20 @@ conn_constants = {
     }
 
 
+def open_file_input_string(input_file):
+  if is_zipfile(input_file):
+    zip = ZipFile(input_file, "r")
+    file_object = StringIO.StringIO(zip.read(zip.namelist()[0]))
+  else:
+    file_object = fileinput.input(input_file)
+
+  return file_object
+
+def close_file_input_string(file_object):
+  file_object.close()
+
+
+
 def main():
   details_re = re.compile(r"^Details:\scpu=\d+u\+\d+s\s*(\((?P<appCpu>.*)\))?")
   app_cpu_usage_re = re.compile(
@@ -1255,7 +1282,7 @@ def main():
     input_string = LegacyFormatConverter().convert(input_file)
     input_file = StringIO.StringIO(input_string)
   else:
-    input_file = open(input_file, "r")
+    input_file = open_file_input_string(input_file)
 
   while True:
     line = input_file.readline()
@@ -1389,7 +1416,8 @@ def main():
     data_stop_time = event_time
     data_stop_timestr = format_time(time_delta_s)
 
-  input_file.close()
+  #input_file.close()
+  close_file_input_string(input_file)
   if not on_mode:
     print "Battery history not present in bugreport."
     return

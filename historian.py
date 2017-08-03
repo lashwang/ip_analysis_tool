@@ -1241,22 +1241,38 @@ def close_file_input_string(file_object):
     file_object.close()
 
 
-def process_job_events(job_dict):
-    for line in job_dict:
+def export_app_info():
+    ws = wb.create_sheet("app")
+    ws.append(["app_uid","app_name"])
+    for key in app_dict.keys():
+        ws.append([key,app_dict.get(key)])
+
+def process_common_events(event_name,event_dict):
+    ws = wb.create_sheet(event_name)
+    ws.append(['event_name','time','app_name','app_uid','log','unix_time'])
+    for line in event_dict:
+        if "=" not in line[0]:
+            continue
         uid = (line[0].split('=')[1]).split(':')[0]
+        print uid
         if len(uid) == 5:
             uid = uid.replace('u0a', '100')
+        elif len(uid) == 4:
+            uid = uid.replace('u0a', '1000')
         else:
             uid = uid.replace('u0a', '10')
 
-        app_name = app_dict[uid]
-        ws.append(["job",app_name,uid,line[0]])
+        app_name = app_dict.get(uid)
+        time = arrow.get(line[1]).format('YYYY-MM-DD HH:mm:ss')
+
+        ws.append([event_name,time,app_name,uid,line[0],line[1]])
+        ws_all.append([event_name,time,app_name,uid,line[0],line[1]])
 
 
 
 def main():
     global app_dict
-    global wb,ws
+    global wb,ws_all
 
     details_re = re.compile(r"^Details:\scpu=\d+u\+\d+s\s*(\((?P<appCpu>.*)\))?")
     app_cpu_usage_re = re.compile(
@@ -1300,7 +1316,7 @@ def main():
         "idle": 0,
     }
     wb = Workbook()
-    ws = wb.active
+    ws_all = wb.create_sheet('all_events')
 
     if legacy_mode:
         input_string = LegacyFormatConverter().convert(input_file)
@@ -1472,7 +1488,11 @@ def main():
                                     data_stop_time)
     # print emit_dict
     # print app_dict
-    process_job_events(emit_dict["job"])
+    export_app_info()
+    process_common_events("job",emit_dict["job"])
+    process_common_events("alarm", emit_dict["alarm"])
+    process_common_events('sync',emit_dict['sync'])
+    process_common_events('wake_lock', emit_dict['wake_lock'])
     wb.save("report.xlsx")
 
 

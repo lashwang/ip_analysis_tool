@@ -1489,10 +1489,10 @@ def main():
     # print emit_dict
     # print app_dict
     export_app_info()
-    process_common_events("job",emit_dict["job"])
-    process_common_events("alarm", emit_dict["alarm"])
-    process_common_events('sync',emit_dict['sync'])
-    process_common_events('wake_lock', emit_dict['wake_lock'])
+    process_common_events("job",emit_dict.get("job"))
+    process_common_events("alarm", emit_dict.get("alarm"))
+    process_common_events('sync',emit_dict.get('sync'))
+    process_common_events('wake_lock', emit_dict.get('wake_lock'))
     wb.save("report.xlsx")
 
 

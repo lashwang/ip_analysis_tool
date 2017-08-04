@@ -1248,6 +1248,8 @@ def export_app_info():
         ws.append([key,app_dict.get(key)])
 
 def process_common_events(event_name,event_dict):
+    if not event_dict:
+        return
     ws = wb.create_sheet(event_name)
     ws.append(['event_name','time','app_name','app_uid','log','unix_time'])
     for line in event_dict:

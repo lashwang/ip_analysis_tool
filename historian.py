@@ -1247,6 +1247,19 @@ def export_app_info():
     for key in app_dict.keys():
         ws.append([key,app_dict.get(key)])
 
+def get_app_name(uid):
+    if len(uid) == 5:
+        uid = uid.replace('u0a', '100')
+    elif len(uid) == 4:
+        uid = uid.replace('u0a', '1000')
+    else:
+        uid = uid.replace('u0a', '10')
+
+    app_name = app_dict.get(uid)
+
+    return app_name
+
+
 def process_common_events(event_name,event_dict):
     if not event_dict:
         return
@@ -1256,25 +1269,69 @@ def process_common_events(event_name,event_dict):
         if "=" not in line[0]:
             continue
         uid = (line[0].split('=')[1]).split(':')[0]
-        print uid
-        if len(uid) == 5:
-            uid = uid.replace('u0a', '100')
-        elif len(uid) == 4:
-            uid = uid.replace('u0a', '1000')
-        else:
-            uid = uid.replace('u0a', '10')
-
-        app_name = app_dict.get(uid)
+        app_name = get_app_name(uid)
         time = arrow.get(line[1]).format('YYYY-MM-DD HH:mm:ss')
 
         ws.append([event_name,time,app_name,uid,line[0],line[1]])
         ws_all.append([event_name,time,app_name,uid,line[0],line[1]])
 
 
+def do_compare_with_events(event_name,event_dict, netlog_time, netlog_app_name,netlog_line):
+    for line in event_dict:
+        if "=" not in line[0]:
+            continue
+        uid = (line[0].split('=')[1]).split(':')[0]
+        event_app_name = get_app_name(uid)
+        event_start_time = line[1]
+        event_end_time = line[2]
+        event_format_time = arrow.get(line[1]).format('YYYY-MM-DD HH:mm:ss')
+
+        if event_app_name == netlog_app_name:
+            diff = int(netlog_time) - int(event_start_time)
+            if diff >=0 and diff <= 5:
+                print event_name,event_format_time,event_app_name
+                print line[0]
+                print netlog_line
+                ws_compare.append([event_name,event_format_time,event_app_name,line[0],netlog_line])
+
+
+
+
+
+
+def find_events_for_app():
+    file_object = open_file_input_string(logcat_file)
+    ws_compare.append(['event_type', 'event_time', 'app_name', 'events_str', 'netlog'])
+    while True:
+        line = file_object.readline()
+        if not line: break
+        if "NetLog (" not in line:
+            continue
+
+        line = line.strip()
+        result = re.match(".*- NetLog \(IP.*\): (.*)", line)
+        if not result or len(result.groups())<1:
+            result = re.match(".*- NetLog.*\(.*\): (.*)", line)
+        netlog = result.groups(1)
+        netlog_split = netlog[0].split(',')
+        time = netlog_split[0]
+        unix_time = arrow.get(time, 'YYYY-MM-DD HH:mm:ss').timestamp
+        app_name = netlog_split[10]
+
+        # do compare
+
+        do_compare_with_events("job",emit_dict.get("job"),unix_time,app_name,netlog[0])
+        do_compare_with_events("alarm",emit_dict.get("alarm"), unix_time, app_name,netlog[0])
+        do_compare_with_events("sync",emit_dict.get("sync"), unix_time, app_name,netlog[0])
+        do_compare_with_events("wake_lock",emit_dict.get("wake_lock"), unix_time, app_name,netlog[0])
+
+    close_file_input_string(file_object)
 
 def main():
     global app_dict
-    global wb,ws_all
+    global wb,ws_all,ws_compare
+    global logcat_file
+    global emit_dict
 
     details_re = re.compile(r"^Details:\scpu=\d+u\+\d+s\s*(\((?P<appCpu>.*)\))?")
     app_cpu_usage_re = re.compile(
@@ -1307,6 +1364,8 @@ def main():
     is_dumpsys_format = False
     argv_remainder = parse_argv()
     input_file = argv_remainder[0]
+    logcat_file = argv_remainder[1]
+
     legacy_mode = is_file_legacy_mode(input_file)
     # A map of /proc/stat names to total times (in ms).
     proc_stat_summary = {
@@ -1319,6 +1378,7 @@ def main():
     }
     wb = Workbook()
     ws_all = wb.create_sheet('all_events')
+    ws_compare = wb.create_sheet('events_compare')
 
     if legacy_mode:
         input_string = LegacyFormatConverter().convert(input_file)
@@ -1495,8 +1555,8 @@ def main():
     process_common_events("alarm", emit_dict.get("alarm"))
     process_common_events('sync',emit_dict.get('sync'))
     process_common_events('wake_lock', emit_dict.get('wake_lock'))
+    find_events_for_app()
     wb.save("report.xlsx")
-
 
 '''
 

@@ -1427,9 +1427,11 @@ def main():
     else:
         input_file = open_file_input_string(input_file)
 
+    line = None
     while True:
+        last_line = line
         line = input_file.readline()
-        if not line: break
+        if not line:break
 
         if not app_mode and line.startswith("Packages"):
             app_mode = True
@@ -1464,7 +1466,8 @@ def main():
             continue
         if "OVERFLOW" in line:
             overflowed = True
-            break
+            on_mode_process = False
+            continue
         if "START" in line:
             reboot = True
             continue

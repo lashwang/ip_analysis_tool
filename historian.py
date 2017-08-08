@@ -1325,8 +1325,7 @@ def do_compare_with_wakelock_events(event_name,event_dict,wakelock_dict):
                     event_app_name = get_app_name(uid0)
                     event_format_time0 = arrow.get(event_start_time0).format('YYYY-MM-DD HH:mm:ss')
                     event_format_time1 = arrow.get(event_start_time1).format('YYYY-MM-DD HH:mm:ss')
-                    print event
-                    print wakelock
+                    print event_app_name
                     ws_compare_wakelock.append([event_format_time0,event_name,event_app_name,event[0]])
                     ws_compare_wakelock.append([event_format_time1,"wake_lock",event_app_name, wakelock[0]])
                     ws_compare_wakelock.append([""])

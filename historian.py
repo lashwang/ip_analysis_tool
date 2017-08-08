@@ -1262,6 +1262,7 @@ def get_app_name(uid):
 
 def parse_event_line(event):
     if "=" not in event[0]:
+        print event
         return (None,None,None)
     try:
         uid = (event[0].split('=')[1]).split(':')[0]

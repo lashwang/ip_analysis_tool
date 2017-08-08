@@ -1276,7 +1276,7 @@ def process_common_events(event_name,event_dict):
         ws_all.append([event_name,time,app_name,uid,line[0],line[1]])
 
 
-def do_compare_with_events(event_name,event_dict, netlog_time, netlog_app_name,netlog_line):
+def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_app_name, netlog_line):
     for line in event_dict:
         if "=" not in line[0]:
             continue
@@ -1292,14 +1292,19 @@ def do_compare_with_events(event_name,event_dict, netlog_time, netlog_app_name,n
                 print event_name,event_format_time,event_app_name
                 print line[0]
                 print netlog_line
-                ws_compare.append([event_name,event_format_time,event_app_name,line[0],netlog_line])
+                ws_compare.append([event_format_time,event_name,event_app_name,line[0]])
+                ws_compare.append(netlog_line.split(","))
 
 
 
 
 
+def find_events_for_wakelock():
 
-def find_events_for_app():
+    pass
+
+
+def find_events_for_network():
     file_object = open_file_input_string(logcat_file)
     ws_compare.append(['event_type', 'event_time', 'app_name', 'events_str', 'netlog'])
     while True:
@@ -1320,10 +1325,12 @@ def find_events_for_app():
 
         # do compare
 
-        do_compare_with_events("job",emit_dict.get("job"),unix_time,app_name,netlog[0])
-        do_compare_with_events("alarm",emit_dict.get("alarm"), unix_time, app_name,netlog[0])
-        do_compare_with_events("sync",emit_dict.get("sync"), unix_time, app_name,netlog[0])
-        do_compare_with_events("wake_lock",emit_dict.get("wake_lock"), unix_time, app_name,netlog[0])
+        do_compare_with_netlog_events("job", emit_dict.get("job"), unix_time, app_name, netlog[0])
+        do_compare_with_netlog_events("alarm", emit_dict.get("alarm"), unix_time, app_name, netlog[0])
+        do_compare_with_netlog_events("sync", emit_dict.get("sync"), unix_time, app_name, netlog[0])
+
+
+
 
     close_file_input_string(file_object)
 
@@ -1555,7 +1562,7 @@ def main():
     process_common_events("alarm", emit_dict.get("alarm"))
     process_common_events('sync',emit_dict.get('sync'))
     process_common_events('wake_lock', emit_dict.get('wake_lock'))
-    find_events_for_app()
+    find_events_for_network()
     wb.save("report.xlsx")
 
 '''

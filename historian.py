@@ -1467,6 +1467,7 @@ def main():
         if "OVERFLOW" in line:
             overflowed = True
             on_mode_process = False
+            print line
             continue
         if "START" in line:
             reboot = True

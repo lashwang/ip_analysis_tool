@@ -1307,7 +1307,6 @@ def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_ap
                 print netlog_line
                 ws_compare_netlog.append([event_format_time,event_name,event_app_name,line[0]])
                 ws_compare_netlog.append(netlog_line.split(","))
-                ws_compare_netlog.append([""])
 
 
 def do_compare_with_wakelock_events(event_name,event_dict,wakelock_dict):
@@ -1327,7 +1326,6 @@ def do_compare_with_wakelock_events(event_name,event_dict,wakelock_dict):
                     event_format_time1 = arrow.get(event_start_time1).format('YYYY-MM-DD HH:mm:ss')
                     ws_compare_wakelock.append([event_format_time0,event_name,event_app_name,event[0]])
                     ws_compare_wakelock.append([event_format_time1,"wake_lock",event_app_name, wakelock[0]])
-                    ws_compare_wakelock.append([""])
 
 
 def find_events_for_wakelock():

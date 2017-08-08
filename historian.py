@@ -1260,6 +1260,21 @@ def get_app_name(uid):
     return app_name
 
 
+def parse_event_line(event):
+    if "=" not in event[0]:
+        return (None,None,None)
+    try:
+        uid = (event[0].split('=')[1]).split(':')[0]
+        event_start_time = event[1]
+        event_end_time = event[2]
+        return (uid, event_start_time, event_end_time)
+    except Exception:
+        print event
+        return (None,None,None)
+
+
+
+
 def process_common_events(event_name,event_dict):
     if not event_dict:
         return
@@ -1280,10 +1295,8 @@ def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_ap
     for line in event_dict:
         if "=" not in line[0]:
             continue
-        uid = (line[0].split('=')[1]).split(':')[0]
+        uid,event_start_time,event_end_time = parse_event_line(line)
         event_app_name = get_app_name(uid)
-        event_start_time = line[1]
-        event_end_time = line[2]
         event_format_time = arrow.get(line[1]).format('YYYY-MM-DD HH:mm:ss')
 
         if event_app_name == netlog_app_name:
@@ -1292,21 +1305,42 @@ def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_ap
                 print event_name,event_format_time,event_app_name
                 print line[0]
                 print netlog_line
-                ws_compare.append([event_format_time,event_name,event_app_name,line[0]])
-                ws_compare.append(netlog_line.split(","))
+                ws_compare_netlog.append([event_format_time,event_name,event_app_name,line[0]])
+                ws_compare_netlog.append(netlog_line.split(","))
+                ws_compare_netlog.append([""])
 
 
-
+def do_compare_with_wakelock_events(event_name,event_dict,wakelock_dict):
+    for event in event_dict:
+        uid0, event_start_time0, event_end_time0 = parse_event_line(event)
+        if not uid0:
+            continue
+        for wakelock in wakelock_dict:
+            uid1, event_start_time1, event_end_time1 = parse_event_line(wakelock)
+            if not uid1:
+                continue
+            if uid0 == uid1:
+                diff = int(event_start_time1) - int(event_start_time0)
+                if diff >= 0 and diff <= 5:
+                    event_app_name = get_app_name(uid0)
+                    event_format_time0 = arrow.get(event_start_time0).format('YYYY-MM-DD HH:mm:ss')
+                    event_format_time1 = arrow.get(event_start_time1).format('YYYY-MM-DD HH:mm:ss')
+                    print event
+                    print wakelock
+                    ws_compare_wakelock.append([event_format_time0,event_name,event_app_name,event[0]])
+                    ws_compare_wakelock.append([event_format_time1,"wake_lock",event_app_name, wakelock[0]])
+                    ws_compare_wakelock.append([""])
 
 
 def find_events_for_wakelock():
-
-    pass
+    do_compare_with_wakelock_events("job", emit_dict.get("job"), emit_dict.get("wake_lock"))
+    do_compare_with_wakelock_events("alarm", emit_dict.get("alarm"),emit_dict.get("wake_lock"))
+    do_compare_with_wakelock_events("sync", emit_dict.get("sync"), emit_dict.get("wake_lock"))
 
 
 def find_events_for_network():
     file_object = open_file_input_string(logcat_file)
-    ws_compare.append(['event_type', 'event_time', 'app_name', 'events_str', 'netlog'])
+    ws_compare_netlog.append(['event_type', 'event_time', 'app_name', 'events_str', 'netlog'])
     while True:
         line = file_object.readline()
         if not line: break
@@ -1336,7 +1370,7 @@ def find_events_for_network():
 
 def main():
     global app_dict
-    global wb,ws_all,ws_compare
+    global wb,ws_all,ws_compare_netlog,ws_compare_wakelock
     global logcat_file
     global emit_dict
 
@@ -1385,7 +1419,8 @@ def main():
     }
     wb = Workbook()
     ws_all = wb.create_sheet('all_events')
-    ws_compare = wb.create_sheet('events_compare')
+    ws_compare_netlog = wb.create_sheet('events_compare_netlog')
+    ws_compare_wakelock = wb.create_sheet('events_compare_wakelock')
 
     if legacy_mode:
         input_string = LegacyFormatConverter().convert(input_file)
@@ -1563,6 +1598,7 @@ def main():
     process_common_events('sync',emit_dict.get('sync'))
     process_common_events('wake_lock', emit_dict.get('wake_lock'))
     find_events_for_network()
+    find_events_for_wakelock()
     wb.save("report.xlsx")
 
 '''

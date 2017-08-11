@@ -1314,6 +1314,8 @@ def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_ap
 
 
 def do_compare_with_wakelock_events(event_name,event_dict,wakelock_dict):
+    if not event_dict:
+        return
     for event in event_dict:
         uid0, event_start_time0, event_end_time0 = parse_event_line(event)
         if not uid0:

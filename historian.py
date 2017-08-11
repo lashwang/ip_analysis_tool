@@ -1407,7 +1407,7 @@ def main():
     is_dumpsys_format = False
     argv_remainder = parse_argv()
     input_file = argv_remainder[0]
-    logcat_file = argv_remainder[1]
+    logcat_file = argv_remainder[1] if len(argv_remainder) >= 2 else None
 
     legacy_mode = is_file_legacy_mode(input_file)
     # A map of /proc/stat names to total times (in ms).
@@ -1603,7 +1603,8 @@ def main():
     process_common_events("alarm", emit_dict.get("alarm"))
     process_common_events('sync',emit_dict.get('sync'))
     process_common_events('wake_lock', emit_dict.get('wake_lock'))
-    find_events_for_network()
+    if not logcat_file:
+        find_events_for_network()
     find_events_for_wakelock()
     wb.save("report.xlsx")
 

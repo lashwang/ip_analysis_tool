@@ -1603,7 +1603,7 @@ def main():
     process_common_events("alarm", emit_dict.get("alarm"))
     process_common_events('sync',emit_dict.get('sync'))
     process_common_events('wake_lock', emit_dict.get('wake_lock'))
-    if not logcat_file:
+    if logcat_file:
         find_events_for_network()
     find_events_for_wakelock()
     wb.save("report.xlsx")

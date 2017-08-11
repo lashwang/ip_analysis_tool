@@ -1293,6 +1293,9 @@ def process_common_events(event_name,event_dict):
 
 
 def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_app_name, netlog_line):
+    if not event_dict:
+        return
+
     for line in event_dict:
         if "=" not in line[0]:
             continue

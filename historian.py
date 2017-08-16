@@ -1308,7 +1308,9 @@ def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_ap
         event_format_time = get_event_time_str(event_start_time)
 
         if event_app_name == netlog_app_name:
-            diff = abs(int(netlog_time) - int(event_start_time))
+            netlog_time_unix = arrow.get(netlog_time,"YYYY-MM-DD HH:MM:ss")
+            event_format_time_unix = arrow.get(event_format_time_unix,"YYYY-MM-DD HH:MM:ss")
+            diff = abs(int(netlog_time_unix) - int(event_format_time_unix))
             if diff >=0 and diff <= 5*60:
                 print event_name,event_format_time,event_app_name
                 print line[0]
@@ -1365,16 +1367,14 @@ def find_events_for_network():
         app_name = netlog_split[10]
         temp_array = line.split(" ")
         local_time_str = str(arrow_time.datetime.year) + "-" + temp_array[0] + " " + temp_array[1]
-        local_time_unix = arrow.get(local_time_str,"YYYY-MM-DD HH:mm:ss").to('local').timestamp
-
         ws_netlog.append([local_time_str] + netlog_split[0:25])
 
 
         # do compare
 
-        do_compare_with_netlog_events("job", emit_dict.get("job"), local_time_unix, app_name, netlog[0])
-        do_compare_with_netlog_events("alarm", emit_dict.get("alarm"), local_time_unix, app_name, netlog[0])
-        do_compare_with_netlog_events("sync", emit_dict.get("sync"), local_time_unix, app_name, netlog[0])
+        do_compare_with_netlog_events("job", emit_dict.get("job"), local_time_str, app_name, netlog[0])
+        do_compare_with_netlog_events("alarm", emit_dict.get("alarm"), local_time_str, app_name, netlog[0])
+        do_compare_with_netlog_events("sync", emit_dict.get("sync"), local_time_str, app_name, netlog[0])
 
 
 

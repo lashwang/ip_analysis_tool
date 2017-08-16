@@ -1308,8 +1308,8 @@ def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_ap
         event_format_time = get_event_time_str(event_start_time)
 
         if event_app_name == netlog_app_name:
-            diff = int(netlog_time) - int(event_start_time)
-            if diff >=0 and diff <= 5:
+            diff = abs(int(netlog_time) - int(event_start_time))
+            if diff >=0 and diff <= 5*60:
                 print event_name,event_format_time,event_app_name
                 print line[0]
                 print netlog_line

@@ -1309,7 +1309,7 @@ def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_ap
 
         if event_app_name == netlog_app_name:
             netlog_time_unix = arrow.get(netlog_time,"YYYY-MM-DD HH:MM:ss")
-            event_format_time_unix = arrow.get(event_format_time_unix,"YYYY-MM-DD HH:MM:ss")
+            event_format_time_unix = arrow.get(event_format_time,"YYYY-MM-DD HH:MM:ss")
             diff = abs(int(netlog_time_unix) - int(event_format_time_unix))
             if diff >=0 and diff <= 5*60:
                 print event_name,event_format_time,event_app_name

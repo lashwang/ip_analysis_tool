@@ -1606,7 +1606,9 @@ def main():
     if logcat_file:
         find_events_for_network()
     find_events_for_wakelock()
-    wb.save("report.xlsx")
+    data_start_time_local = arrow.get(data_start_time).to('local')
+    file_name = "report_{}.xlsx".format(data_start_time_local.format("YYYY_MM_DD"))
+    wb.save(file_name)
 
 '''
 

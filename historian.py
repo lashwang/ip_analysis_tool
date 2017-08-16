@@ -40,6 +40,9 @@ import time
 from zipfile import ZipFile, is_zipfile
 import arrow
 from openpyxl import Workbook
+import os
+
+
 
 POWER_DATA_FILE_TIME_OFFSET = 0  # deal with any clock mismatch.
 BLAME_CATEGORY = "wake_lock_in"  # category to assign power blame to.
@@ -1360,10 +1363,12 @@ def find_events_for_network():
         arrow_time = arrow.get(time, 'YYYY-MM-DD HH:mm:ss')
         unix_time = arrow_time.timestamp
         app_name = netlog_split[10]
-
         temp_array = line.split(" ")
         local_time_str = str(arrow_time.datetime.year) + "-" + temp_array[0] + " " + temp_array[1]
         local_time_unix = arrow.get(local_time_str,"YYYY-MM-DD HH:mm:ss").to('local').timestamp
+
+        ws_netlog.append([local_time_str] + netlog_split[0:25])
+
 
         # do compare
 
@@ -1378,7 +1383,7 @@ def find_events_for_network():
 
 def main():
     global app_dict
-    global wb,ws_all,ws_compare_netlog,ws_compare_wakelock
+    global wb,ws_all,ws_compare_netlog,ws_compare_wakelock,ws_netlog
     global logcat_file
     global emit_dict
 
@@ -1413,6 +1418,7 @@ def main():
     is_dumpsys_format = False
     argv_remainder = parse_argv()
     input_file = argv_remainder[0]
+    input_file_path = input_file
     logcat_file = argv_remainder[1] if len(argv_remainder) >= 2 else None
 
     legacy_mode = is_file_legacy_mode(input_file)
@@ -1429,6 +1435,8 @@ def main():
     ws_all = wb.create_sheet('all_events')
     ws_compare_netlog = wb.create_sheet('events_compare_netlog')
     ws_compare_wakelock = wb.create_sheet('events_compare_wakelock')
+    ws_netlog = wb.create_sheet('netlog')
+
 
     if legacy_mode:
         input_string = LegacyFormatConverter().convert(input_file)
@@ -1614,7 +1622,8 @@ def main():
     find_events_for_wakelock()
     data_start_time_local = arrow.get(data_start_time).to('local')
     file_name = "report_{}.xlsx".format(data_start_time_local.format("YYYY_MM_DD"))
-    wb.save(file_name)
+    file_path = os.path.dirname(os.path.realpath(input_file_path))
+    wb.save(os.path.join(file_path,file_name))
 
 '''
 

@@ -1273,7 +1273,8 @@ def parse_event_line(event):
         print event
         return (None,None,None)
 
-
+def get_event_time_str(_time):
+    return arrow.get(_time).to('local').format('YYYY-MM-DD HH:mm:ss')
 
 
 def process_common_events(event_name,event_dict):
@@ -1286,10 +1287,10 @@ def process_common_events(event_name,event_dict):
             continue
         uid = (line[0].split('=')[1]).split(':')[0]
         app_name = get_app_name(uid)
-        time = arrow.get(line[1]).format('YYYY-MM-DD HH:mm:ss')
+        event_format_time = get_event_time_str(line[1])
 
-        ws.append([event_name,time,app_name,uid,line[0],line[1]])
-        ws_all.append([event_name,time,app_name,uid,line[0],line[1]])
+        ws.append([event_name,event_format_time,app_name,uid,line[0],line[1]])
+        ws_all.append([event_name,event_format_time,app_name,uid,line[0],line[1]])
 
 
 def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_app_name, netlog_line):
@@ -1301,7 +1302,7 @@ def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_ap
             continue
         uid,event_start_time,event_end_time = parse_event_line(line)
         event_app_name = get_app_name(uid)
-        event_format_time = arrow.get(line[1]).format('YYYY-MM-DD HH:mm:ss')
+        event_format_time = get_event_time_str(event_start_time)
 
         if event_app_name == netlog_app_name:
             diff = int(netlog_time) - int(event_start_time)

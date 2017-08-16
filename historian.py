@@ -1357,14 +1357,19 @@ def find_events_for_network():
         netlog = result.groups(1)
         netlog_split = netlog[0].split(',')
         time = netlog_split[0]
-        unix_time = arrow.get(time, 'YYYY-MM-DD HH:mm:ss').timestamp
+        arrow_time = arrow.get(time, 'YYYY-MM-DD HH:mm:ss')
+        unix_time = arrow_time.timestamp
         app_name = netlog_split[10]
+
+        temp_array = line.split(" ")
+        local_time_str = str(arrow_time.datetime.year) + "-" + temp_array[0] + " " + temp_array[1]
+        local_time_unix = arrow.get(local_time_str,"YYYY-MM-DD HH:mm:ss").to('local').timestamp
 
         # do compare
 
-        do_compare_with_netlog_events("job", emit_dict.get("job"), unix_time, app_name, netlog[0])
-        do_compare_with_netlog_events("alarm", emit_dict.get("alarm"), unix_time, app_name, netlog[0])
-        do_compare_with_netlog_events("sync", emit_dict.get("sync"), unix_time, app_name, netlog[0])
+        do_compare_with_netlog_events("job", emit_dict.get("job"), local_time_unix, app_name, netlog[0])
+        do_compare_with_netlog_events("alarm", emit_dict.get("alarm"), local_time_unix, app_name, netlog[0])
+        do_compare_with_netlog_events("sync", emit_dict.get("sync"), local_time_unix, app_name, netlog[0])
 
 
 

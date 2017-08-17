@@ -1233,7 +1233,13 @@ conn_constants = {
 def open_file_input_string(input_file):
     if is_zipfile(input_file):
         zip = ZipFile(input_file, "r")
-        file_object = StringIO.StringIO(zip.read(zip.namelist()[0]))
+        if len(zip.namelist()) > 1:
+            matching = filter(lambda x: x.startswith("bugreport"), zip.namelist())
+            file_name = matching[0]
+        else:
+            file_name = zip.namelist()[0]
+
+        file_object = StringIO.StringIO(zip.read(file_name))
     else:
         file_object = fileinput.input(input_file)
 
@@ -1307,16 +1313,21 @@ def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_ap
         event_app_name = get_app_name(uid)
         event_format_time = get_event_time_str(event_start_time)
 
-        if event_app_name == netlog_app_name:
+        if not event_app_name:
+            continue
+
+
+        if event_app_name == netlog_app_name or netlog_app_name == "com.google.android.gms":
             netlog_time_unix = arrow.get(netlog_time,"YYYY-MM-DD HH:mm:ss")
             event_format_time_unix = arrow.get(event_format_time,"YYYY-MM-DD HH:mm:ss")
             diff = int(netlog_time_unix.timestamp) - int(event_format_time_unix.timestamp)
-            if diff >=0 and diff <= 5:
+            if diff >=0 and diff <= 30:
                 print event_name,event_format_time,event_app_name
                 print line[0]
                 print netlog_line
                 ws_compare_netlog.append([event_format_time,event_name,event_app_name,line[0]])
-                ws_compare_netlog.append(netlog_line.split(","))
+                netlog_line_split = netlog_line.split(",")
+                ws_compare_netlog.append([netlog_line_split[0]] + ["netlog"] + [event_app_name] + [netlog_line])
 
 
 def do_compare_with_wakelock_events(event_name,event_dict,wakelock_dict):
@@ -1334,8 +1345,8 @@ def do_compare_with_wakelock_events(event_name,event_dict,wakelock_dict):
                 diff = int(event_start_time1) - int(event_start_time0)
                 if diff >= 0 and diff <= 5:
                     event_app_name = get_app_name(uid0)
-                    event_format_time0 = arrow.get(event_start_time0).format('YYYY-MM-DD HH:mm:ss')
-                    event_format_time1 = arrow.get(event_start_time1).format('YYYY-MM-DD HH:mm:ss')
+                    event_format_time0 = get_event_time_str(event_start_time0)
+                    event_format_time1 = get_event_time_str(event_start_time1)
                     ws_compare_wakelock.append([event_format_time0,event_name,event_app_name,event[0]])
                     ws_compare_wakelock.append([event_format_time1,"wake_lock",event_app_name, wakelock[0]])
 
@@ -1366,16 +1377,28 @@ def find_events_for_network():
         unix_time = arrow_time.timestamp
         app_name = netlog_split[10]
         temp_array = line.split(" ")
-        local_time_str = str(arrow_time.datetime.year) + "-" + temp_array[0] + " " + temp_array[1]
-        ws_netlog.append([local_time_str] + netlog_split[0:25])
+        #local_time_str = str(arrow_time.datetime.year) + "-" + temp_array[0] + " " + temp_array[1]
+        local_time_str = netlog_split[0]
+
+        if app_name in ['asimov','dns']:
+            continue
+        app_name = app_dict.get(netlog_split[18])
+
+        if not app_name:
+            app_name = netlog_split[10]
+        else:
+            netlog_split[10] = app_name
+
+        ws_netlog.append(netlog_split[0:25])
+
 
 
         # do compare
 
-        do_compare_with_netlog_events("job", emit_dict.get("job"), local_time_str, app_name, netlog[0])
-        do_compare_with_netlog_events("alarm", emit_dict.get("alarm"), local_time_str, app_name, netlog[0])
-        do_compare_with_netlog_events("sync", emit_dict.get("sync"), local_time_str, app_name, netlog[0])
-
+        #do_compare_with_netlog_events("job", emit_dict.get("job"), local_time_str, app_name, netlog[0])
+        #do_compare_with_netlog_events("alarm", emit_dict.get("alarm"), local_time_str, app_name, netlog[0])
+        #do_compare_with_netlog_events("sync", emit_dict.get("sync"), local_time_str, app_name, netlog[0])
+        do_compare_with_netlog_events("wake_lock", emit_dict.get("wake_lock"), local_time_str, app_name, netlog[0])
 
 
 

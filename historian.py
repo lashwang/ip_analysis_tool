@@ -1382,6 +1382,9 @@ def find_events_for_network():
 
         if app_name in ['asimov','dns']:
             continue
+
+        if "com.samsung" in app_name:
+            continue
         app_name = app_dict.get(netlog_split[18])
 
         if not app_name:

@@ -1316,7 +1316,7 @@ def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_ap
         if not event_app_name:
             continue
 
-        if event_app_name == "com.google.android.gms":
+        if event_app_name in ["com.google.android.gms","com.sec.spp.push"]:
             continue
 
         if event_app_name.startswith("com.samsung"):
@@ -1351,6 +1351,8 @@ def do_compare_with_wakelock_events(event_name,event_dict,wakelock_dict):
                 diff = int(event_start_time1) - int(event_start_time0)
                 if diff >= 0 and diff <= 5:
                     event_app_name = get_app_name(uid0)
+                    if event_app_name in ["com.google.android.gms", "com.sec.spp.push"]:
+                        continue
                     event_format_time0 = get_event_time_str(event_start_time0)
                     event_format_time1 = get_event_time_str(event_start_time1)
                     ws_compare_wakelock.append([event_format_time0,event_name,event_app_name,event[0]])

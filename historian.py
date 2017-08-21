@@ -1300,6 +1300,10 @@ def process_common_events(event_name,event_dict):
 
         ws.append([event_name,event_format_time,app_name,uid,line[0],line[1]])
         ws_all.append([event_name,event_format_time,app_name,uid,line[0],line[1]])
+        if event_name == "wake_lock":
+            all_netlog_list.append([event_format_time,event_name,app_name,uid,line[0],line[1]])
+
+
 
 
 def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_app_name, netlog_line):
@@ -1365,6 +1369,7 @@ def find_events_for_wakelock():
     do_compare_with_wakelock_events("sync", emit_dict.get("sync"), emit_dict.get("wake_lock"))
 
 
+
 def find_events_for_network():
     file_object = open_file_input_string(logcat_file)
     ws_compare_netlog.append(['event_type', 'event_time', 'app_name', 'events_str', 'netlog'])
@@ -1399,14 +1404,10 @@ def find_events_for_network():
             netlog_split[10] = app_name
 
         ws_netlog.append(netlog_split[0:25])
-
-
+        all_netlog_list.append(netlog_split[0:25])
 
         # do compare
 
-        #do_compare_with_netlog_events("job", emit_dict.get("job"), local_time_str, app_name, netlog[0])
-        #do_compare_with_netlog_events("alarm", emit_dict.get("alarm"), local_time_str, app_name, netlog[0])
-        #do_compare_with_netlog_events("sync", emit_dict.get("sync"), local_time_str, app_name, netlog[0])
         do_compare_with_netlog_events("wake_lock", emit_dict.get("wake_lock"), local_time_str, app_name, netlog[0])
 
 
@@ -1414,8 +1415,8 @@ def find_events_for_network():
     close_file_input_string(file_object)
 
 def main():
-    global app_dict
-    global wb,ws_all,ws_compare_netlog,ws_compare_wakelock,ws_netlog
+    global app_dict,all_netlog_list
+    global wb,ws_all,ws_compare_netlog,ws_compare_wakelock,ws_netlog,ws_wakelock_netlog_merge
     global logcat_file
     global emit_dict
 
@@ -1468,6 +1469,9 @@ def main():
     ws_compare_netlog = wb.create_sheet('events_compare_netlog')
     ws_compare_wakelock = wb.create_sheet('events_compare_wakelock')
     ws_netlog = wb.create_sheet('netlog')
+    ws_wakelock_netlog_merge = wb.create_sheet('merge_netlog_wakelock')
+
+    all_netlog_list = []
 
 
     if legacy_mode:
@@ -1645,12 +1649,17 @@ def main():
     # print emit_dict
     # print app_dict
     export_app_info()
+    if logcat_file:
+        find_events_for_network()
     process_common_events("job",emit_dict.get("job"))
     process_common_events("alarm", emit_dict.get("alarm"))
     process_common_events('sync',emit_dict.get('sync'))
     process_common_events('wake_lock', emit_dict.get('wake_lock'))
-    if logcat_file:
-        find_events_for_network()
+
+    all_netlog_list = sorted(all_netlog_list)
+    for i in all_netlog_list:
+        ws_wakelock_netlog_merge.append(i)
+
     find_events_for_wakelock()
     data_start_time_local = arrow.get(data_start_time).to('local')
     file_name = "report_{}.xlsx".format(data_start_time_local.format("YYYY_MM_DD"))

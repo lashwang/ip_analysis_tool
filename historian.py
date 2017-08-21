@@ -1316,12 +1316,18 @@ def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_ap
         if not event_app_name:
             continue
 
+        if event_app_name == "com.google.android.gms":
+            continue
+
+        if event_app_name.startswith("com.samsung"):
+            continue
+
 
         if event_app_name == netlog_app_name or netlog_app_name == "com.google.android.gms":
             netlog_time_unix = arrow.get(netlog_time,"YYYY-MM-DD HH:mm:ss")
             event_format_time_unix = arrow.get(event_format_time,"YYYY-MM-DD HH:mm:ss")
             diff = int(netlog_time_unix.timestamp) - int(event_format_time_unix.timestamp)
-            if diff >=0 and diff <= 30:
+            if diff >=0 and diff <= 3:
                 print event_name,event_format_time,event_app_name
                 print line[0]
                 print netlog_line
@@ -1383,8 +1389,6 @@ def find_events_for_network():
         if app_name in ['asimov','dns']:
             continue
 
-        if "com.samsung" in app_name:
-            continue
         app_name = app_dict.get(netlog_split[18])
 
         if not app_name:

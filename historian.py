@@ -39,7 +39,7 @@ import sys
 import time
 from zipfile import ZipFile, is_zipfile
 import arrow
-from openpyxl import Workbook
+from openpyxl import Workbook,load_workbook
 import os
 
 
@@ -1256,7 +1256,21 @@ def export_app_info():
     for key in app_dict.keys():
         ws.append([key,app_dict.get(key)])
 
-def get_app_name(uid):
+    wb_crcs = load_workbook(filename='data/logcat-startup-2017-08-21.txt.xlsx')
+    crcs = wb_crcs['CRCS']
+    rows = crcs.rows
+
+    for row in rows:
+        line = [col.value for col in row]
+        if not line[4]:
+            continue
+        if "app_resync" in line[4]:
+            if '0' == line[7]:
+                continue
+            app_name_dict[line[5]] = line[6]
+
+
+def get_app_package_name(uid):
     if len(uid) == 5:
         uid = uid.replace('u0a', '100')
     elif len(uid) == 4:
@@ -1264,9 +1278,17 @@ def get_app_name(uid):
     else:
         uid = uid.replace('u0a', '10')
 
-    app_name = app_dict.get(uid)
+    app_package_name = app_dict.get(uid)
+
+    return app_package_name
+
+def get_app_name(package_name):
+    app_name = app_name_dict.get(package_name)
+    if not app_name:
+        return package_name
 
     return app_name
+
 
 
 def parse_event_line(event):
@@ -1290,18 +1312,19 @@ def process_common_events(event_name,event_dict):
     if not event_dict:
         return
     ws = wb.create_sheet(event_name)
-    ws.append(['event_name','time','app_name','app_uid','log','unix_time'])
+    ws.append(['event_name','time','app_package_name','app_name','app_uid','log','unix_time'])
     for line in event_dict:
         if "=" not in line[0]:
             continue
         uid = (line[0].split('=')[1]).split(':')[0]
-        app_name = get_app_name(uid)
+        app_package_name = get_app_package_name(uid)
+        app_name = get_app_name(app_package_name)
         event_format_time = get_event_time_str(line[1])
 
-        ws.append([event_name,event_format_time,app_name,uid,line[0],line[1]])
-        ws_all.append([event_name,event_format_time,app_name,uid,line[0],line[1]])
+        ws.append([event_name,event_format_time,app_package_name,uid,line[0],line[1]])
+        ws_all.append([event_name,event_format_time,app_package_name,app_name,uid,line[0],line[1]])
         if event_name == "wake_lock":
-            all_netlog_list.append([event_format_time,event_name,app_name,uid,line[0],line[1]])
+            all_netlog_list.append([event_format_time,event_name,app_package_name,app_name,uid,line[0],line[1]])
 
 
 
@@ -1314,30 +1337,31 @@ def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_ap
         if "=" not in line[0]:
             continue
         uid,event_start_time,event_end_time = parse_event_line(line)
-        event_app_name = get_app_name(uid)
+        event_app_package_name = get_app_package_name(uid)
+        event_app_name = get_app_name(event_app_package_name)
         event_format_time = get_event_time_str(event_start_time)
 
-        if not event_app_name:
+        if not event_app_package_name:
             continue
 
-        if event_app_name in ["com.google.android.gms","com.sec.spp.push"]:
+        if event_app_package_name in ["com.google.android.gms","com.sec.spp.push"]:
             continue
 
-        if event_app_name.startswith("com.samsung"):
+        if event_app_package_name.startswith("com.samsung"):
             continue
 
 
-        if event_app_name == netlog_app_name or netlog_app_name == "com.google.android.gms":
+        if event_app_package_name == netlog_app_name or netlog_app_name == "com.google.android.gms":
             netlog_time_unix = arrow.get(netlog_time,"YYYY-MM-DD HH:mm:ss")
             event_format_time_unix = arrow.get(event_format_time,"YYYY-MM-DD HH:mm:ss")
             diff = int(netlog_time_unix.timestamp) - int(event_format_time_unix.timestamp)
             if diff >=0 and diff <= 3:
-                print event_name,event_format_time,event_app_name
+                print event_name,event_format_time,event_app_package_name
                 print line[0]
                 print netlog_line
-                ws_compare_netlog.append([event_format_time,event_name,event_app_name,line[0]])
+                ws_compare_netlog.append([event_format_time,event_name,event_app_package_name,event_app_name,line[0]])
                 netlog_line_split = netlog_line.split(",")
-                ws_compare_netlog.append([netlog_line_split[0]] + ["netlog"] + [event_app_name] + [netlog_line])
+                ws_compare_netlog.append([netlog_line_split[0]] + ["netlog"] + [event_app_package_name] + [netlog_line])
 
 
 def do_compare_with_wakelock_events(event_name,event_dict,wakelock_dict):
@@ -1354,13 +1378,14 @@ def do_compare_with_wakelock_events(event_name,event_dict,wakelock_dict):
             if uid0 == uid1:
                 diff = int(event_start_time1) - int(event_start_time0)
                 if diff >= 0 and diff <= 5:
-                    event_app_name = get_app_name(uid0)
-                    if event_app_name in ["com.google.android.gms", "com.sec.spp.push"]:
+                    event_app_package_name = get_app_package_name(uid0)
+                    event_app_name = get_app_name(event_app_package_name)
+                    if event_app_package_name in ["com.google.android.gms", "com.sec.spp.push"]:
                         continue
                     event_format_time0 = get_event_time_str(event_start_time0)
                     event_format_time1 = get_event_time_str(event_start_time1)
-                    ws_compare_wakelock.append([event_format_time0,event_name,event_app_name,event[0]])
-                    ws_compare_wakelock.append([event_format_time1,"wake_lock",event_app_name, wakelock[0]])
+                    ws_compare_wakelock.append([event_format_time0,event_name,event_app_package_name,event_app_name,event[0]])
+                    ws_compare_wakelock.append([event_format_time1,"wake_lock",event_app_package_name,event_app_name, wakelock[0]])
 
 
 def find_events_for_wakelock():
@@ -1372,7 +1397,7 @@ def find_events_for_wakelock():
 
 def find_events_for_network():
     file_object = open_file_input_string(logcat_file)
-    ws_compare_netlog.append(['event_type', 'event_time', 'app_name', 'events_str', 'netlog'])
+    ws_compare_netlog.append(['event_type', 'event_time', 'app_package_name','app_name', 'events_str', 'netlog'])
     while True:
         line = file_object.readline()
         if not line: break
@@ -1415,7 +1440,7 @@ def find_events_for_network():
     close_file_input_string(file_object)
 
 def main():
-    global app_dict,all_netlog_list
+    global app_dict,all_netlog_list,app_name_dict
     global wb,ws_all,ws_compare_netlog,ws_compare_wakelock,ws_netlog,ws_wakelock_netlog_merge
     global logcat_file
     global emit_dict
@@ -1447,6 +1472,7 @@ def main():
     time_dict = {}  # total event time held per second
     highlight_dict = {}  # search result for -n option
     app_dict = {}
+    app_name_dict = {}
     is_first_data_line = True
     is_dumpsys_format = False
     argv_remainder = parse_argv()

@@ -1335,7 +1335,7 @@ def process_common_events(event_name,event_dict):
         app_package_name = get_app_package_name(uid)
         app_name = get_app_name(app_package_name)
         event_format_time = get_event_time_str(line[1])
-        screen_state = get_screen_state(line[i])
+        screen_state = get_screen_state(line[1])
 
 
         ws.append([event_name,event_format_time,app_package_name,uid,screen_state,line[0],line[1]])

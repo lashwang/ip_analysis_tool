@@ -1339,9 +1339,9 @@ def process_common_events(event_name,event_dict):
 
 
         ws.append([event_name,event_format_time,app_package_name,uid,screen_state,line[0],line[1]])
-        ws_all.append([event_name,event_format_time,app_package_name,app_name,uid,line[0],line[1]])
+        ws_all.append([event_name,event_format_time,app_package_name,app_name,uid,screen_state,line[0],line[1]])
         if event_name == "wake_lock":
-            all_netlog_list.append([event_format_time,event_name,app_package_name,app_name,uid,line[0],line[1]])
+            all_netlog_list.append([event_format_time,event_name,app_package_name,app_name,uid,screen_state,line[0],line[1]])
 
 
 

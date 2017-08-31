@@ -40,6 +40,7 @@ import time
 from zipfile import ZipFile, is_zipfile
 import arrow
 from openpyxl import Workbook,load_workbook
+from openpyxl.styles.colors import YELLOW
 import os
 
 
@@ -1270,6 +1271,20 @@ def export_app_info():
             app_name_dict[line[5]] = line[6]
 
 
+def get_screen_state(unix_time):
+    if not screen_state_dict:
+        return "Unknown"
+    for i in screen_state_dict:
+        start_time = int(i[1])
+        end_time = int(i[2])
+        unix_time = int(unix_time)
+        if unix_time >= start_time and unix_time <= end_time:
+            return "ON"
+
+
+    return "OFF"
+
+
 def get_app_package_name(uid):
     if len(uid) == 5:
         uid = uid.replace('u0a', '100')
@@ -1312,7 +1327,7 @@ def process_common_events(event_name,event_dict):
     if not event_dict:
         return
     ws = wb.create_sheet(event_name)
-    ws.append(['event_name','time','app_package_name','app_name','app_uid','log','unix_time'])
+    ws.append(['event_name','time','app_package_name','app_name','app_uid','screen','log','unix_time'])
     for line in event_dict:
         if "=" not in line[0]:
             continue
@@ -1320,8 +1335,10 @@ def process_common_events(event_name,event_dict):
         app_package_name = get_app_package_name(uid)
         app_name = get_app_name(app_package_name)
         event_format_time = get_event_time_str(line[1])
+        screen_state = get_screen_state(line[i])
 
-        ws.append([event_name,event_format_time,app_package_name,uid,line[0],line[1]])
+
+        ws.append([event_name,event_format_time,app_package_name,uid,screen_state,line[0],line[1]])
         ws_all.append([event_name,event_format_time,app_package_name,app_name,uid,line[0],line[1]])
         if event_name == "wake_lock":
             all_netlog_list.append([event_format_time,event_name,app_package_name,app_name,uid,line[0],line[1]])
@@ -1341,8 +1358,13 @@ def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_ap
         event_app_name = get_app_name(event_app_package_name)
         event_format_time = get_event_time_str(event_start_time)
 
+
+
         if not event_app_package_name:
             continue
+
+
+
 
         if event_app_package_name in ["com.google.android.gms","com.sec.spp.push"]:
             continue
@@ -1359,7 +1381,8 @@ def do_compare_with_netlog_events(event_name, event_dict, netlog_time, netlog_ap
                 print event_name,event_format_time,event_app_package_name
                 print line[0]
                 print netlog_line
-                ws_compare_netlog.append([event_format_time,event_name,event_app_package_name,event_app_name,line[0]])
+                screen_state = get_screen_state(event_start_time)
+                ws_compare_netlog.append([event_format_time,event_name,screen_state,event_app_package_name,event_app_name,line[0]])
                 netlog_line_split = netlog_line.split(",")
                 ws_compare_netlog.append([netlog_line_split[0]] + ["netlog"] + [event_app_package_name] + [netlog_line])
 
@@ -1384,8 +1407,10 @@ def do_compare_with_wakelock_events(event_name,event_dict,wakelock_dict):
                         continue
                     event_format_time0 = get_event_time_str(event_start_time0)
                     event_format_time1 = get_event_time_str(event_start_time1)
-                    ws_compare_wakelock.append([event_format_time0,event_name,event_app_package_name,event_app_name,event[0]])
-                    ws_compare_wakelock.append([event_format_time1,"wake_lock",event_app_package_name,event_app_name, wakelock[0]])
+                    screen_state0 = get_screen_state(event_start_time0)
+                    screen_state1 = get_screen_state(event_start_time1)
+                    ws_compare_wakelock.append([event_format_time0,event_name,event_app_package_name,event_app_name,screen_state0,event[0]])
+                    ws_compare_wakelock.append([event_format_time1,"wake_lock",event_app_package_name,event_app_name,screen_state1, wakelock[0]])
 
 
 def find_events_for_wakelock():
@@ -1440,7 +1465,7 @@ def find_events_for_network():
     close_file_input_string(file_object)
 
 def main():
-    global app_dict,all_netlog_list,app_name_dict
+    global app_dict,all_netlog_list,app_name_dict,screen_state_dict
     global wb,ws_all,ws_compare_netlog,ws_compare_wakelock,ws_netlog,ws_wakelock_netlog_merge
     global logcat_file
     global emit_dict
@@ -1473,6 +1498,7 @@ def main():
     highlight_dict = {}  # search result for -n option
     app_dict = {}
     app_name_dict = {}
+    screen_state_dict = {}
     is_first_data_line = True
     is_dumpsys_format = False
     argv_remainder = parse_argv()
@@ -1674,6 +1700,7 @@ def main():
                                     data_stop_time)
     # print emit_dict
     # print app_dict
+    screen_state_dict = emit_dict.get("screen")
     export_app_info()
     if logcat_file:
         find_events_for_network()

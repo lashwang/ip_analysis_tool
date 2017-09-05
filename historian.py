@@ -1323,25 +1323,52 @@ def get_event_time_str(_time):
     return arrow.get(_time).to('local').format('YYYY-MM-DD HH:mm:ss')
 
 
+def is_alarm_wake_lock(event_log):
+    if "*walarm*" in event_log or "*alarm*" in event_log:
+        return True
+
+    return False
+
+
+def set_alarm_events(events_list):
+    if "alarm" in emit_dict:
+        emit_dict["alarm"].append(events_list)
+    else:
+        emit_dict["alarm"] = [events_list]
+
+
 def process_common_events(event_name,event_dict):
     if not event_dict:
         return
-    ws = wb.create_sheet(event_name)
-    ws.append(['event_name','time','app_package_name','app_name','app_uid','screen','log','unix_time'])
+
+    ws = None
+    export_event_lable = ["job","alarm","wake_lock","sync"]
+
+    if event_name in export_event_lable:
+        ws = wb.create_sheet(event_name)
+        ws.append(['time','event_name','app_package_name','app_name','app_uid','screen','log','unix_time'])
     for line in event_dict:
         if "=" not in line[0]:
             continue
         uid = (line[0].split('=')[1]).split(':')[0]
+        if not (uid.startswith("10") or uid.startswith("u0") or uid.startswith("u1")):
+            uid = "unknown"
+
         app_package_name = get_app_package_name(uid)
         app_name = get_app_name(app_package_name)
         event_format_time = get_event_time_str(line[1])
         screen_state = get_screen_state(line[1])
 
-
-        ws.append([event_name,event_format_time,app_package_name,uid,screen_state,line[0],line[1]])
-        ws_all.append([event_name,event_format_time,app_package_name,app_name,uid,screen_state,line[0],line[1]])
+        if ws:
+            ws.append([event_format_time,event_name,app_package_name,app_name,uid,screen_state,line[0],line[1]])
+        all_events_list.append([event_format_time,event_name,app_package_name,app_name,uid,screen_state,line[0],line[1]])
         if event_name == "wake_lock":
             all_netlog_list.append([event_format_time,event_name,app_package_name,app_name,uid,screen_state,line[0],line[1]])
+            if is_alarm_wake_lock(line[0]):
+                set_alarm_events(line)
+
+
+
 
 
 
@@ -1465,7 +1492,7 @@ def find_events_for_network():
     close_file_input_string(file_object)
 
 def main():
-    global app_dict,all_netlog_list,app_name_dict,screen_state_dict
+    global app_dict,all_netlog_list,app_name_dict,screen_state_dict,all_events_list
     global wb,ws_all,ws_compare_netlog,ws_compare_wakelock,ws_netlog,ws_wakelock_netlog_merge
     global logcat_file
     global emit_dict
@@ -1524,6 +1551,7 @@ def main():
     ws_wakelock_netlog_merge = wb.create_sheet('merge_netlog_wakelock')
 
     all_netlog_list = []
+    all_events_list = []
 
 
     if legacy_mode:
@@ -1704,10 +1732,15 @@ def main():
     export_app_info()
     if logcat_file:
         find_events_for_network()
-    process_common_events("job",emit_dict.get("job"))
-    process_common_events("alarm", emit_dict.get("alarm"))
-    process_common_events('sync',emit_dict.get('sync'))
-    process_common_events('wake_lock', emit_dict.get('wake_lock'))
+
+    for key in emit_dict.keys():
+        process_common_events(key, emit_dict.get(key))
+
+    all_events_list = sorted(all_events_list)
+    ws_all.append(['time', 'event_name', 'app_package_name', 'app_name', 'app_uid', 'screen', 'log', 'unix_time'])
+    for i in all_events_list:
+        ws_all.append(i)
+
 
     all_netlog_list = sorted(all_netlog_list)
     for i in all_netlog_list:

@@ -1347,21 +1347,25 @@ def process_common_events(event_name,event_dict):
     if event_name in export_event_lable:
         ws = wb.create_sheet(event_name)
         ws.append(['time','event_name','app_package_name','app_name','app_uid','screen','log','unix_time'])
+
+
     for line in event_dict:
         if "=" not in line[0]:
-            continue
-        uid = (line[0].split('=')[1]).split(':')[0]
-        if not (uid.startswith("10") or uid.startswith("u0") or uid.startswith("u1")):
             uid = "unknown"
+        else:
+            uid = (line[0].split('=')[1]).split(':')[0]
+            if not (uid.startswith("10") or uid.startswith("u0") or uid.startswith("u1")):
+                uid = "unknown"
 
         app_package_name = get_app_package_name(uid)
         app_name = get_app_name(app_package_name)
         event_format_time = get_event_time_str(line[1])
         screen_state = get_screen_state(line[1])
+        all_events_list.append(
+            [event_format_time, event_name, app_package_name, app_name, uid, screen_state, line[0], line[1]])
 
         if ws:
             ws.append([event_format_time,event_name,app_package_name,app_name,uid,screen_state,line[0],line[1]])
-        all_events_list.append([event_format_time,event_name,app_package_name,app_name,uid,screen_state,line[0],line[1]])
         if event_name == "wake_lock":
             all_netlog_list.append([event_format_time,event_name,app_package_name,app_name,uid,screen_state,line[0],line[1]])
             if is_alarm_wake_lock(line[0]):

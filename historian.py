@@ -1308,7 +1308,7 @@ def get_app_name(package_name):
 
 def parse_event_line(event):
     if "=" not in event[0]:
-        print event
+        #print event
         return (None,None,None)
     try:
         uid = (event[0].split('=')[1]).split(':')[0]
@@ -1495,11 +1495,51 @@ def find_events_for_network():
 
     close_file_input_string(file_object)
 
+
+def process_app_power_data(line):
+    if "Capacity:" in line:
+        return
+
+    templist = line.split(":")
+    t0 = templist[0]
+    t1 = templist[1]
+
+    if "Uid" in t0:
+        uid = t0.split(" ")[1]
+    else:
+        uid = t0
+
+    pattern = re.match(r'(.*)\((.*)\)',t1)
+
+    try:
+        value = float(pattern.group(1))
+        detail = pattern.group(2)
+    except Exception:
+        value = float(t1)
+        detail = None
+
+    app_power_list.append([uid,value,detail])
+
+def export_app_power_data():
+    ws = wb.create_sheet("app_power_data")
+    for i in app_power_list:
+        app_package_name = get_app_package_name(i[0])
+        if not app_package_name:
+            app_package_name = i[0]
+
+        ws.append([app_package_name] + i)
+
+
+
+
+
+
 def main():
     global app_dict,all_netlog_list,app_name_dict,screen_state_dict,all_events_list
     global wb,ws_all,ws_compare_netlog,ws_compare_wakelock,ws_netlog,ws_wakelock_netlog_merge
     global logcat_file
     global emit_dict
+    global app_power_list
 
     details_re = re.compile(r"^Details:\scpu=\d+u\+\d+s\s*(\((?P<appCpu>.*)\))?")
     app_cpu_usage_re = re.compile(
@@ -1529,8 +1569,10 @@ def main():
     highlight_dict = {}  # search result for -n option
     app_dict = {}
     app_name_dict = {}
+    app_power_list = []
     screen_state_dict = {}
     is_first_data_line = True
+    is_app_power_data = False
     is_dumpsys_format = False
     argv_remainder = parse_argv()
     input_file = argv_remainder[0]
@@ -1568,7 +1610,9 @@ def main():
     while True:
         last_line = line
         line = input_file.readline()
-        if not line:break
+        if not line:
+            print last_line
+            break
 
         if not app_mode and line.startswith("Packages"):
             app_mode = True
@@ -1584,6 +1628,20 @@ def main():
                     app_uid = app_uid.strip()
                     app_dict[app_uid] = app_name
                     continue
+
+        if "Estimated power use" in line:
+            is_app_power_data = True
+            continue
+
+        if is_app_power_data:
+            if line.isspace():
+                is_app_power_data = False
+                continue
+            line = line.strip()
+            process_app_power_data(line)
+
+
+
 
         if not on_mode and line.startswith("Battery History"):
             on_mode = True
@@ -1611,6 +1669,7 @@ def main():
             continue
         if "TIME: " in line:
             continue
+
 
         # escape spaces within quoted regions
         p = re.compile('"[^"]+"')
@@ -1652,6 +1711,11 @@ def main():
             except IndexError:
                 sys.stderr.write("proc/stat line didn't match properly")
             continue
+
+
+
+
+
 
         # pull apart input line by spaces
         split_line = line.split()
@@ -1734,6 +1798,7 @@ def main():
     # print app_dict
     screen_state_dict = emit_dict.get("screen")
     export_app_info()
+    export_app_power_data()
     if logcat_file:
         find_events_for_network()
 

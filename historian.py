@@ -1342,7 +1342,8 @@ def process_common_events(event_name,event_dict):
         return
 
     ws = None
-    export_event_lable = ["job","alarm","wake_lock","sync","battery_level"]
+    #export_event_lable = ["job","alarm","wake_lock","sync","battery_level"]
+    export_event_lable = ["battery_level"]
 
     if event_name in export_event_lable:
         ws = wb.create_sheet(event_name)
@@ -1367,7 +1368,8 @@ def process_common_events(event_name,event_dict):
         if ws:
             ws.append([event_format_time,event_name,app_package_name,app_name,uid,screen_state,line[0],line[1]])
         if event_name == "wake_lock":
-            all_netlog_list.append([event_format_time,event_name,app_package_name,app_name,uid,screen_state,line[0],line[1]])
+            all_netlog_list.append([event_format_time,
+                                    event_name,app_package_name,app_name,uid,screen_state,line[0],line[1]])
             if is_alarm_wake_lock(line[0]):
                 set_alarm_events(line)
 

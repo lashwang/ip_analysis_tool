@@ -1342,7 +1342,7 @@ def process_common_events(event_name,event_dict):
         return
 
     ws = None
-    export_event_lable = ["job","alarm","wake_lock","sync"]
+    export_event_lable = ["job","alarm","wake_lock","sync","battery_level"]
 
     if event_name in export_event_lable:
         ws = wb.create_sheet(event_name)

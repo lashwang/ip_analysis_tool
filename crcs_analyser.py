@@ -30,12 +30,14 @@ def open_file_input_string(input_file):
 
 
 def parse_from_file(f):
-    global df_power,df_netlog
+    global df_all,df_power,df_netlog
     file_object = open_file_input_string(f)
-    df = pandas.read_csv(file_object,header=None,error_bad_lines=False)
-    df_power = df[df.iloc[:, 4] == 'battery']
-
-    return df
+    df_all = pandas.read_csv(file_object,header=None,error_bad_lines=False)
+    df_all[0] = pandas.to_datetime(df_all.iloc[:,0],format="%Y-%m-%d %H:%M:%S")
+    df_power = df_all[df_all.iloc[:, 4] == 'battery']
+    df_power[5] = pandas.to_numeric(df_power[5])
+    df_power[7] = pandas.to_numeric(df_power[7])/1000
+    pass
 
 def default():
     parse_from_file('data/Crcs_fd544095-7116-4291-9f01-6f5cf67f607b_2018-01-03-00.00.00_2018-01-04-00.00.00-r-00000.gz')

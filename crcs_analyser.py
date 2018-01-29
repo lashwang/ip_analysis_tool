@@ -11,7 +11,8 @@ import binascii
 import pandas
 
 
-
+# define battery drop level
+BATTERY_DROP_WATER_LEVEL = 4
 
 
 def is_gz_file(filepath):
@@ -30,17 +31,21 @@ def open_file_input_string(input_file):
 
 
 def parse_from_file(f):
-    global df_all,df_power,df_netlog
+    global df_all,df_power,df_netlog,crcs_start_time,df_power_fast
     file_object = open_file_input_string(f)
     df_all = pandas.read_csv(file_object,header=None,error_bad_lines=False)
     df_all[0] = pandas.to_datetime(df_all.iloc[:,0],format="%Y-%m-%d %H:%M:%S")
+    crcs_start_time = df_all.iloc[0,0]
     df_power = df_all[df_all.iloc[:, 4] == 'battery']
     df_power[5] = pandas.to_numeric(df_power[5])
     df_power[7] = pandas.to_numeric(df_power[7])/1000
+    # get the fast power records.
+    df_power_fast = df_power[df_power[7] <= BATTERY_DROP_WATER_LEVEL*60]
+
     pass
 
 def default():
-    parse_from_file('data/Crcs_fd544095-7116-4291-9f01-6f5cf67f607b_2018-01-03-00.00.00_2018-01-04-00.00.00-r-00000.gz')
+    parse_from_file('data/Crcs_#7515.gz')
 
 class CRCSAnaLyser(object):
     def file(self,f):

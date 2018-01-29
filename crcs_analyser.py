@@ -66,14 +66,15 @@ def generate_battery_report():
     pass
 
 
-def default():
-    parse_crcs_from_file('data/Crcs_#7515.gz')
 
 class CRCSAnaLyser(object):
-    def file(self,f):
-        parse_crcs_from_file(f)
+    def parse(self,f):
+        pass
 
-    def folder(self,d):
+    def test_parse_crcs_file(self):
+        parse_crcs_from_file('data/Crcs_#7515.gz')
+
+    def test_parse_crcs_folder(self):
         pass
 
 
@@ -81,10 +82,7 @@ class CRCSAnaLyser(object):
 def main():
     global wb
     wb = Workbook()
-    if len(sys.argv) == 1:
-        fire.Fire(default)
-    else:
-        fire.Fire(CRCSAnaLyser)
+    fire.Fire(CRCSAnaLyser)
     wb.save(arrow.now().format("YYYY_MM_DD") + ".xlsx")
 
 

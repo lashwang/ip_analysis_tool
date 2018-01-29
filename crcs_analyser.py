@@ -9,6 +9,9 @@ import sys
 import gzip
 import binascii
 import pandas
+from openpyxl import Workbook,load_workbook
+import arrow
+
 
 
 # define battery drop level
@@ -76,12 +79,13 @@ class CRCSAnaLyser(object):
 
 
 def main():
+    global wb
+    wb = Workbook()
     if len(sys.argv) == 1:
         fire.Fire(default)
     else:
         fire.Fire(CRCSAnaLyser)
-
-
+    wb.save(arrow.now().format("YYYY_MM_DD") + ".xlsx")
 
 
 if __name__ == "__main__":

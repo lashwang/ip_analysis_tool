@@ -149,10 +149,18 @@ def generate_basic_battery_report():
     result['total_crcs_number'] = total_crcs_number
     result['ave_battery_speed'] \
         = '{}%/{}'.format(round(3600/avg_battery_drop_speed,2),int(avg_battery_drop_speed))
-    result['screen_on_power_speed'] \
-        = '{}%{}'.format(round(3600/avg_battery_drop_speed_screen_on,2),int(avg_battery_drop_speed_screen_on))
-    result['screen_off_power_speed'] \
-        = '{}%{}'.format(round(3600/avg_battery_drop_speed_screen_off,2),int(avg_battery_drop_speed_screen_off))
+
+    if avg_battery_drop_speed_screen_on != 0:
+        result['screen_on_power_speed'] \
+            = '{}%{}'.format(round(3600/avg_battery_drop_speed_screen_on,2),int(avg_battery_drop_speed_screen_on))
+    else:
+        result['screen_on_power_speed'] = "NA"
+
+    if avg_battery_drop_speed_screen_off:
+        result['screen_off_power_speed'] \
+            = '{}%{}'.format(round(3600/avg_battery_drop_speed_screen_off,2),int(avg_battery_drop_speed_screen_off))
+    else:
+        result['screen_off_power_speed'] = "NA"
     result['device_mode'] = device_mode
     result['device_version'] = device_version
     result['start_time_utc'] = crcs_start_time

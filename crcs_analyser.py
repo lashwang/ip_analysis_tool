@@ -80,7 +80,7 @@ def parse_crcs_from_file(f):
     df_deviceinfo = df_deviceinfo.dropna(axis=1)
 
     df_memory = df_system[df_system[4] == 'memory'].copy()
-    df_memory_process = df_memory[]
+
 
     generate_basic_battery_report()
 

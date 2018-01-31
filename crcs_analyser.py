@@ -36,14 +36,14 @@ def open_file_input_string(input_file):
 
 
 def parse_crcs_from_file(f):
-    global df_all,df_power,df_netlog,df_system,df_backlight,df_deviceinfo
+    global df_all,df_power,df_netlog,df_system,df_backlight,df_deviceinfo,df_memory
     global crcs_start_time,crcs_end_time,df_power_fast,user_id,orig_file,total_crcs_number
     df_all = pandas.DataFrame()
     df_power_fast = pandas.DataFrame()
     df_system = pandas.DataFrame()
     df_netlog = pandas.DataFrame()
     df_power = pandas.DataFrame()
-
+    df_memory = pandas.DataFrame()
 
     file_object = open_file_input_string(f)
     #print "read_csv"
@@ -78,6 +78,10 @@ def parse_crcs_from_file(f):
     df_backlight = df_backlight.dropna(axis=1)
     df_deviceinfo = df_system[df_system[4] == 'dev_info'].copy()
     df_deviceinfo = df_deviceinfo.dropna(axis=1)
+
+    df_memory = df_system[df_system[4] == 'memory'].copy()
+    df_memory_process = df_memory[]
+
     generate_basic_battery_report()
 
 

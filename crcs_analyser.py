@@ -17,7 +17,7 @@ import os, fnmatch
 import gc
 
 # define battery drop level
-BATTERY_DROP_WATER_LEVEL = 4
+BATTERY_DROP_WATER_LEVEL = 6
 title_exist = False
 
 def is_gz_file(filepath):
@@ -35,15 +35,61 @@ def open_file_input_string(input_file):
     return file_object
 
 
+
+def process_cpu_logs():
+    df_cpu = df_system[df_system[4] == 'cpu'].copy()
+    if df_cpu.empty:
+        return
+    df_cpu = df_cpu.dropna(axis=1)
+    ws_cpu = wb.create_sheet("cpu")
+
+    for r in dataframe_to_rows(df_cpu, index=False, header=False):
+        ws_cpu.append(r)
+
+    pass
+
+def process_power_fast_logs():
+    df_power_fast = df_power[df_power[7] <= BATTERY_DROP_WATER_LEVEL*60].copy()
+    if df_power_fast.empty:
+        return
+    df_power_fast['start_time'] = df_power_fast[0] - pandas.to_timedelta(df_power_fast[7],'s')
+    df_power_fast['end_time'] = df_power_fast[0]
+
+    if df_power_fast.empty:
+        return
+
+    df_power_fast = df_power_fast.dropna(axis=1)
+    ws_power_fast = wb.create_sheet("battery_drop_fast")
+
+    for r in dataframe_to_rows(df_power_fast, index=False, header=False):
+        ws_power_fast.append(r)
+
+    pass
+
+
+
+def process_memory_logs():
+    df_memory = df_system[df_system[4] == 'memory'].copy()
+    if df_memory.empty:
+        return
+    df_memory = df_memory[df_memory[5] == "process"].copy()
+    df_memory = df_memory.dropna(axis=1)
+    ws_memory = wb.create_sheet("memory")
+
+    for r in dataframe_to_rows(df_memory, index=False, header=False):
+        ws_memory.append(r)
+    pass
+
 def parse_crcs_from_file(f):
-    global df_all,df_power,df_netlog,df_system,df_backlight,df_deviceinfo,df_memory
-    global crcs_start_time,crcs_end_time,df_power_fast,user_id,orig_file,total_crcs_number
+    global df_all,df_power,df_netlog,df_system,df_backlight,df_deviceinfo
+    global crcs_start_time,crcs_end_time,user_id,orig_file,total_crcs_number
+
+
     df_all = pandas.DataFrame()
     df_power_fast = pandas.DataFrame()
     df_system = pandas.DataFrame()
     df_netlog = pandas.DataFrame()
     df_power = pandas.DataFrame()
-    df_memory = pandas.DataFrame()
 
     file_object = open_file_input_string(f)
     #print "read_csv"
@@ -57,16 +103,16 @@ def parse_crcs_from_file(f):
     crcs_end_time = df_all.iloc[-1,0]
     orig_file = f
     user_id = df_all.iloc[0,1]
+
+
+    # battery data frame
     df_power = df_all[df_all.iloc[:, 4] == 'battery']
-    if df_power.shape[0] == 0:
+    if df_power.empty:
         return
     df_power = df_power.dropna(axis=1)
     df_power[5] = pandas.to_numeric(df_power[5])
     df_power[7] = pandas.to_numeric(df_power[7])/1000
     # get the fast power records.
-    df_power_fast = df_power[df_power[7] <= BATTERY_DROP_WATER_LEVEL*60].copy()
-    df_power_fast['end_time'] = df_power_fast[0]
-    df_power_fast['start_time'] = df_power_fast['end_time'] - pandas.to_timedelta(df_power_fast[7],'s')
     df_netlog = df_all[df_all[2] == 'netlog'].copy()
 
     # process system log
@@ -76,12 +122,10 @@ def parse_crcs_from_file(f):
     df_deviceinfo = df_system[df_system[4] == 'dev_info'].copy()
     df_deviceinfo = df_deviceinfo.dropna(axis=1)
 
-    df_memory = df_system[df_system[4] == 'memory'].copy()
-
-
     generate_basic_battery_report()
-
-
+    process_cpu_logs()
+    process_memory_logs()
+    process_power_fast_logs()
 
     pass
 
@@ -149,21 +193,21 @@ def generate_basic_battery_report():
     result['user'] = user_id
     result['total_crcs_number'] = total_crcs_number
     result['ave_battery_speed'] \
-        = '{}%/{}'.format(round(3600/avg_battery_drop_speed,2),int(avg_battery_drop_speed))
+        = '{}s {}%/h'.format(int(avg_battery_drop_speed),round(3600/avg_battery_drop_speed,2))
+    result['screen_on_power_speed'] = "NA"
+    result['screen_off_power_speed'] = "NA"
 
     if avg_battery_drop_speed_screen_on != 0:
         result['screen_on_power_speed'] \
-            = '{}%{}'.format(round(3600/avg_battery_drop_speed_screen_on,2),int(avg_battery_drop_speed_screen_on))
-    else:
-        result['screen_on_power_speed'] = "NA"
+            = '{}s {}%/h'.format(int(avg_battery_drop_speed_screen_on),round(3600/avg_battery_drop_speed_screen_on,2))
+
 
     if avg_battery_drop_speed_screen_off:
         result['screen_off_power_speed'] \
-            = '{}%{}'.format(round(3600/avg_battery_drop_speed_screen_off,2),int(avg_battery_drop_speed_screen_off))
-    else:
-        result['screen_off_power_speed'] = "NA"
+            = '{}s {}%/h'.format(int(avg_battery_drop_speed_screen_off),round(3600/avg_battery_drop_speed_screen_off,2))
     result['device_mode'] = device_mode
     result['device_version'] = device_version
+    result['time_period'] = str(crcs_end_time - crcs_start_time)
     result['start_time_utc'] = crcs_start_time
     result['end_time_utc'] = crcs_end_time
     result['source_file'] = orig_file
@@ -173,6 +217,9 @@ def generate_basic_battery_report():
     ws_basic.append(result.values())
 
     pass
+
+
+
 
 
 def find_files(directory, pattern):

@@ -63,12 +63,21 @@ def upload_file():
                 mkdir_p(output_path)
             app.config['UPLOAD_FOLDER'] = output_path
             ouput_filename = on_file_uploaded(os.path.join(source_file_path, filename), output_path)
-            return redirect(url_for('uploaded_file',
-                                    filename=ouput_filename))
+            #return redirect(url_for('uploaded_file',filename=ouput_filename))
+            return '''
+            <!DOCTYPE html>
+            <html>
+            <body>
+            <p>{}<a href="{}">{}</a></p>
+            </body>
+            </html>
+            '''.format("Get CRCS parse result from:",
+                       os.path.join(output_path, ouput_filename),
+                       ouput_filename)
     return '''
     <!doctype html>
     <title>Upload CRCS File</title>
-    <h1>Upload new File</h1>
+    <h1>Upload CRCS File</h1>
     <form action="" method=post enctype=multipart/form-data>
       <p><input type=file name=file>
          <input type=submit value=Upload>
@@ -76,11 +85,9 @@ def upload_file():
     '''
 
 
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    print "get output filename:" + filename
-
-    return send_from_directory(app.config['UPLOAD_FOLDER'],filename)
+@app.route('/output_file/<date>/<filename>')
+def uploaded_file(date,filename):
+    return send_from_directory("./output_file/" + date,filename)
 
 
 if __name__ == "__main__":

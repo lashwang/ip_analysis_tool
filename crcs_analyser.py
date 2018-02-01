@@ -47,10 +47,7 @@ def parse_crcs_from_file(f):
 
     file_object = open_file_input_string(f)
     #print "read_csv"
-    try:
-        df_all = pandas.read_csv(file_object,header=None,names = list(range(0,100)))
-    except Exception,e:
-        return
+    df_all = pandas.read_csv(file_object,header=None,names = list(range(0,100)))
     print "read_csv success,record number:" + str(df_all.shape[0])
     total_crcs_number = df_all.shape[0]
     #df_all = df_all.dropna(axis=1)
@@ -221,6 +218,16 @@ def main():
     fire.Fire(CRCSAnaLyser)
     wb.save("battery_report_" + arrow.now().format("YYYY_MM_DD") + ".xlsx")
 
+
+def on_file_uploaded(file,output_path):
+    global wb, ws_basic
+    wb = Workbook()
+    ws_basic = wb.active
+    ws_basic.title = "basic battery info"
+    parse_crcs_from_file(file)
+    filename = user_id + ".xlsx"
+    wb.save(output_path + "/" + filename)
+    return filename
 
 if __name__ == "__main__":
     main()

@@ -50,7 +50,7 @@ def parse_crcs_from_file(f):
 
     file_object = open_file_input_string(f)
     #print "read_csv"
-    df_all = pandas.read_csv(file_object,header=None,names = list(range(0,100)))
+    df_all = pandas.read_csv(file_object,header=None,names = list(range(0,50)))
     print "read_csv success,record number:" + str(df_all.shape[0])
     total_crcs_number = df_all.shape[0]
     #df_all = df_all.dropna(axis=1)
@@ -63,21 +63,28 @@ def parse_crcs_from_file(f):
 
 
     # battery data frame
-    df_power = df_all[df_all.iloc[:, 4] == 'battery']
+    df_power = df_all[df_all.iloc[:, 4] == 'battery'].copy()
     if df_power.empty:
         return
-    df_power = df_power.dropna(axis=1)
+    #df_power = df_power.dropna(axis=1)
     df_power[5] = pandas.to_numeric(df_power[5])
+    df_power[6] = pandas.to_numeric(df_power[6])
     df_power[7] = pandas.to_numeric(df_power[7])/1000
+    df_power[8] = pandas.to_numeric(df_power[8])
+    df_power[9] = pandas.to_numeric(df_power[9])
+
     # get the fast power records.
     df_netlog = df_all[df_all[2] == 'netlog'].copy()
 
     # process system log
     df_system = df_all[df_all[2] == 'system']
     df_backlight = df_system[df_system[4] == 'backlight'].copy()
-    df_backlight = df_backlight.dropna(axis=1)
+    df_backlight[5] = pandas.to_numeric(df_backlight[5])
+    df_backlight[10] = pandas.to_numeric(df_backlight[10])
+
+    #df_backlight = df_backlight.dropna(axis=1)
     df_deviceinfo = df_system[df_system[4] == 'dev_info'].copy()
-    df_deviceinfo = df_deviceinfo.dropna(axis=1)
+    #df_deviceinfo = df_deviceinfo.dropna(axis=1)
 
     generate_basic_battery_report()
     process_cpu_logs()
@@ -179,11 +186,12 @@ def process_cpu_logs():
     df_cpu = df_system[df_system[4] == 'cpu'].copy()
     if df_cpu.empty:
         return
-    df_cpu = df_cpu.dropna(axis=1)
+    #df_cpu = df_cpu.dropna(axis=1)
     ws_cpu = wb.create_sheet("cpu")
 
     for r in dataframe_to_rows(df_cpu, index=False, header=False):
-        ws_cpu.append(r)
+        if "[process]" in r[6]:
+            ws_cpu.append(r)
 
     pass
 
@@ -194,22 +202,30 @@ def process_power_fast_logs():
     df_power_fast['start_time'] = df_power_fast[0] - pandas.to_timedelta(df_power_fast[7],'s')
     df_power_fast['end_time'] = df_power_fast[0]
 
-    if df_power_fast.empty:
-        return
+    ws_power_fast = wb.create_sheet("battery_drop_fast")
+    ws_power_netlog = wb.create_sheet("netlog_battery_drop_fast")
+
+    df_netlog_power = pandas.DataFrame()
+
+    for index, value in df_power_fast.iterrows():
+        #print row['start_time'],row['end_time']
+        df_netlog_temp \
+            = df_netlog[(df_netlog[0] >= value['start_time']) & (df_netlog[0] <= value['end_time'])]
+        df_netlog_power = df_netlog_power.append(df_netlog_temp)
 
 
     df_power_fast = df_power_fast.append(df_backlight)
     df_power_fast = df_power_fast.sort_values(df_power_fast.columns[0])
 
-
-    ws_power_fast = wb.create_sheet("battery_drop_fast")
-
-
-
+    cols = df_netlog_power.columns[df_netlog_power.dtypes.eq('object')]
+    df_netlog_power[cols] = df_netlog_power[cols].apply(pandas.to_numeric,errors="ignore")
 
     for r in dataframe_to_rows(df_power_fast, index=False, header=False):
         ws_power_fast.append(r)
     pass
+
+    for r in dataframe_to_rows(df_netlog_power, index=False, header=False):
+        ws_power_netlog.append(r)
 
 
 
@@ -218,7 +234,7 @@ def process_memory_logs():
     if df_memory.empty:
         return
     df_memory = df_memory[df_memory[5] == "process"].copy()
-    df_memory = df_memory.dropna(axis=1)
+    #df_memory = df_memory.dropna(axis=1)
     ws_memory = wb.create_sheet("memory")
 
     for r in dataframe_to_rows(df_memory, index=False, header=False):

@@ -36,49 +36,6 @@ def open_file_input_string(input_file):
 
 
 
-def process_cpu_logs():
-    df_cpu = df_system[df_system[4] == 'cpu'].copy()
-    if df_cpu.empty:
-        return
-    df_cpu = df_cpu.dropna(axis=1)
-    ws_cpu = wb.create_sheet("cpu")
-
-    for r in dataframe_to_rows(df_cpu, index=False, header=False):
-        ws_cpu.append(r)
-
-    pass
-
-def process_power_fast_logs():
-    df_power_fast = df_power[df_power[7] <= BATTERY_DROP_WATER_LEVEL*60].copy()
-    if df_power_fast.empty:
-        return
-    df_power_fast['start_time'] = df_power_fast[0] - pandas.to_timedelta(df_power_fast[7],'s')
-    df_power_fast['end_time'] = df_power_fast[0]
-
-    if df_power_fast.empty:
-        return
-
-    df_power_fast = df_power_fast.dropna(axis=1)
-    ws_power_fast = wb.create_sheet("battery_drop_fast")
-
-    for r in dataframe_to_rows(df_power_fast, index=False, header=False):
-        ws_power_fast.append(r)
-
-    pass
-
-
-
-def process_memory_logs():
-    df_memory = df_system[df_system[4] == 'memory'].copy()
-    if df_memory.empty:
-        return
-    df_memory = df_memory[df_memory[5] == "process"].copy()
-    df_memory = df_memory.dropna(axis=1)
-    ws_memory = wb.create_sheet("memory")
-
-    for r in dataframe_to_rows(df_memory, index=False, header=False):
-        ws_memory.append(r)
-    pass
 
 def parse_crcs_from_file(f):
     global df_all,df_power,df_netlog,df_system,df_backlight,df_deviceinfo
@@ -218,6 +175,55 @@ def generate_basic_battery_report():
 
     pass
 
+def process_cpu_logs():
+    df_cpu = df_system[df_system[4] == 'cpu'].copy()
+    if df_cpu.empty:
+        return
+    df_cpu = df_cpu.dropna(axis=1)
+    ws_cpu = wb.create_sheet("cpu")
+
+    for r in dataframe_to_rows(df_cpu, index=False, header=False):
+        ws_cpu.append(r)
+
+    pass
+
+def process_power_fast_logs():
+    df_power_fast = df_power[df_power[7] <= BATTERY_DROP_WATER_LEVEL*60].copy()
+    if df_power_fast.empty:
+        return
+    df_power_fast['start_time'] = df_power_fast[0] - pandas.to_timedelta(df_power_fast[7],'s')
+    df_power_fast['end_time'] = df_power_fast[0]
+
+    if df_power_fast.empty:
+        return
+
+
+    df_power_fast = df_power_fast.append(df_backlight)
+    df_power_fast = df_power_fast.sort_values(df_power_fast.columns[0])
+
+
+    ws_power_fast = wb.create_sheet("battery_drop_fast")
+
+
+
+
+    for r in dataframe_to_rows(df_power_fast, index=False, header=False):
+        ws_power_fast.append(r)
+    pass
+
+
+
+def process_memory_logs():
+    df_memory = df_system[df_system[4] == 'memory'].copy()
+    if df_memory.empty:
+        return
+    df_memory = df_memory[df_memory[5] == "process"].copy()
+    df_memory = df_memory.dropna(axis=1)
+    ws_memory = wb.create_sheet("memory")
+
+    for r in dataframe_to_rows(df_memory, index=False, header=False):
+        ws_memory.append(r)
+    pass
 
 
 

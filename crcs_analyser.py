@@ -40,13 +40,15 @@ def open_file_input_string(input_file):
 def parse_crcs_from_file(f):
     global df_all,df_power,df_netlog,df_system,df_backlight,df_deviceinfo
     global crcs_start_time,crcs_end_time,user_id,orig_file,total_crcs_number
-
+    global memory_info
 
     df_all = pandas.DataFrame()
     df_power_fast = pandas.DataFrame()
     df_system = pandas.DataFrame()
     df_netlog = pandas.DataFrame()
     df_power = pandas.DataFrame()
+    memory_info = ""
+
 
     file_object = open_file_input_string(f)
     #print "read_csv"
@@ -85,12 +87,10 @@ def parse_crcs_from_file(f):
     #df_backlight = df_backlight.dropna(axis=1)
     df_deviceinfo = df_system[df_system[4] == 'dev_info'].copy()
     #df_deviceinfo = df_deviceinfo.dropna(axis=1)
-
-    generate_basic_battery_report()
     process_cpu_logs()
     process_memory_logs()
     process_power_fast_logs()
-
+    generate_basic_battery_report()
     pass
 
 def calc_screen_battery_usage():
@@ -142,7 +142,8 @@ def calc_screen_battery_usage():
 
 
 def generate_basic_battery_report():
-    global title_exist
+    global title_exist,memory_info
+
     avg_battery_drop_speed = df_power[7].mean()
     device_mode = "unknown"
     device_version = "unknown"
@@ -174,6 +175,7 @@ def generate_basic_battery_report():
     result['time_period'] = str(crcs_end_time - crcs_start_time)
     result['start_time_utc'] = crcs_start_time
     result['end_time_utc'] = crcs_end_time
+    result['memory_info'] = memory_info
     result['source_file'] = orig_file
     if not title_exist:
         ws_basic.append(result.keys())
@@ -230,16 +232,31 @@ def process_power_fast_logs():
 
 
 def process_memory_logs():
+    global memory_info
+
     df_memory = df_system[df_system[4] == 'memory'].copy()
     if df_memory.empty:
         return
     df_memory = df_memory[df_memory[5] == "process"].copy()
-    #df_memory = df_memory.dropna(axis=1)
     ws_memory = wb.create_sheet("memory")
 
     for r in dataframe_to_rows(df_memory, index=False, header=False):
         ws_memory.append(r)
     pass
+
+    memory_info = ""
+
+    process_list = df_memory[6].unique()
+    
+    for process in process_list:
+        s_memory_info = df_memory[df_memory[6] == process][11]
+        df_process_memory = s_memory_info.str.split(pat=":", expand=True)
+        df_process_memory[1] = pandas.to_numeric(df_process_memory[1])
+        mean = round(df_process_memory[1].mean(),2)
+        max = round(df_process_memory[1].max(),2)
+        memory_info += "[{}]:mean - {}, max - {} \n".format(process,mean,max)
+        pass
+
 
 
 

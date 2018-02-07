@@ -90,6 +90,7 @@ def parse_crcs_from_file(f):
     process_cpu_logs()
     process_memory_logs()
     process_power_fast_logs()
+    process_service_logs()
     generate_basic_battery_report()
     pass
 
@@ -177,10 +178,16 @@ def generate_basic_battery_report():
     result['end_time_utc'] = crcs_end_time
     result['memory_info'] = memory_info
     result['source_file'] = orig_file
-    if not title_exist:
-        ws_basic.append(result.keys())
-        title_exist = True
-    ws_basic.append(result.values())
+
+
+
+    # if not title_exist:
+    #     ws_basic.append(result.keys())
+    #     title_exist = True
+    # ws_basic.append(result.values())
+
+    for k,v in result.items():
+        ws_basic.append([k,v])
 
     pass
 
@@ -188,12 +195,13 @@ def process_cpu_logs():
     df_cpu = df_system[df_system[4] == 'cpu'].copy()
     if df_cpu.empty:
         return
-    #df_cpu = df_cpu.dropna(axis=1)
     ws_cpu = wb.create_sheet("cpu")
 
     for r in dataframe_to_rows(df_cpu, index=False, header=False):
         if "[process]" in r[6]:
             ws_cpu.append(r)
+
+
 
     pass
 
@@ -229,6 +237,18 @@ def process_power_fast_logs():
     for r in dataframe_to_rows(df_netlog_power, index=False, header=False):
         ws_power_netlog.append(r)
 
+
+def process_service_logs():
+    df_service = df_all[(df_all[2] == 'service') & (df_all[4] == 'service')].copy()
+    if df_service.empty:
+        return
+
+    ws_service = wb.create_sheet("service_log")
+
+    for r in dataframe_to_rows(df_service,index=False,header=False):
+        ws_service.append(r)
+
+    pass
 
 
 def process_memory_logs():

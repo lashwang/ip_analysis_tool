@@ -201,7 +201,15 @@ def process_cpu_logs():
         if "[process]" in r[6]:
             ws_cpu.append(r)
 
+    df_cpu_filter = df_cpu[df_cpu[6].str.contains("process")].copy()
 
+    process_list = df_cpu_filter[5].unique()
+
+    for process in process_list:
+        df_process_cpu = df_cpu_filter[df_cpu_filter[5] == process]
+        s_process_cpu = df_process_cpu[7].str.split("/")
+
+        pass
 
     pass
 

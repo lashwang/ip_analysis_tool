@@ -277,7 +277,7 @@ def process_memory_logs():
     process_list = df_memory[6].unique()
     
     for process in process_list:
-        s_memory_info = df_memory[df_memory[6] == process][11]
+        s_memory_info = df_memory[df_memory[6] == process][16]
         df_process_memory = s_memory_info.str.split(pat=":", expand=True)
         df_process_memory[1] = pandas.to_numeric(df_process_memory[1])
         mean = round(df_process_memory[1].mean(),2)

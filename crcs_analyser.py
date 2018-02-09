@@ -14,11 +14,10 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from collections import OrderedDict
 import arrow
 import os, fnmatch
-import gc
 
 # define battery drop level
 BATTERY_DROP_WATER_LEVEL = 6
-title_exist = False
+
 
 def is_gz_file(filepath):
     with open(filepath, 'rb') as test_f:
@@ -38,26 +37,37 @@ def open_file_input_string(input_file):
 
 
 def parse_crcs_from_file(f):
-    global df_all,df_power,df_netlog,df_system,df_backlight,df_deviceinfo
+    global df_all,df_power,df_netlog,df_system,df_backlight,df_deviceinfo,df_memory,df_memory_power_fast
     global crcs_start_time,crcs_end_time,user_id,orig_file,total_crcs_number
-    global memory_info
+    global basic_report
+
 
     df_all = pandas.DataFrame()
-    df_power_fast = pandas.DataFrame()
     df_system = pandas.DataFrame()
     df_netlog = pandas.DataFrame()
     df_power = pandas.DataFrame()
-    memory_info = ""
-
+    df_memory = pandas.DataFrame()
+    df_memory_power_fast = pandas.DataFrame()
+    basic_report = OrderedDict()
 
     file_object = open_file_input_string(f)
-    #print "read_csv"
     df_all = pandas.read_csv(file_object,header=None,names = list(range(0,50)))
     print "read_csv success,record number:" + str(df_all.shape[0])
+
+    if df_all.empty:
+        return
+
+    df_all.dropna(axis=1,how="all",inplace=True)
+
+    # save to excel
+    ws_all = wb.create_sheet("all")
+    for r in dataframe_to_rows(df_all, index=False, header=False):
+        ws_all.append(r)
+    pass
+
+
     total_crcs_number = df_all.shape[0]
-    #df_all = df_all.dropna(axis=1)
     df_all[0] = pandas.to_datetime(df_all.iloc[:,0],format="%Y-%m-%d %H:%M:%S",errors='coerce')
-    #print "convert to datatime"
     crcs_start_time = df_all.iloc[0,0]
     crcs_end_time = df_all.iloc[-1,0]
     orig_file = f
@@ -68,7 +78,6 @@ def parse_crcs_from_file(f):
     df_power = df_all[df_all.iloc[:, 4] == 'battery'].copy()
     if df_power.empty:
         return
-    #df_power = df_power.dropna(axis=1)
     df_power[5] = pandas.to_numeric(df_power[5])
     df_power[6] = pandas.to_numeric(df_power[6])
     df_power[7] = pandas.to_numeric(df_power[7])/1000
@@ -84,9 +93,9 @@ def parse_crcs_from_file(f):
     df_backlight[5] = pandas.to_numeric(df_backlight[5])
     df_backlight[10] = pandas.to_numeric(df_backlight[10])
 
-    #df_backlight = df_backlight.dropna(axis=1)
     df_deviceinfo = df_system[df_system[4] == 'dev_info'].copy()
-    #df_deviceinfo = df_deviceinfo.dropna(axis=1)
+    df_memory = df_system[df_system[4] == 'memory'].copy()
+
     process_cpu_logs()
     process_memory_logs()
     process_power_fast_logs()
@@ -143,8 +152,7 @@ def calc_screen_battery_usage():
 
 
 def generate_basic_battery_report():
-    global title_exist,memory_info
-
+    global basic_report,df_memory,df_memory_power_fast
     avg_battery_drop_speed = df_power[7].mean()
     device_mode = "unknown"
     device_version = "unknown"
@@ -155,29 +163,30 @@ def generate_basic_battery_report():
         pass
 
     calc_screen_battery_usage()
-    result = OrderedDict()
-    result['user'] = user_id
-    result['total_crcs_number'] = total_crcs_number
-    result['ave_battery_speed'] \
+    basic_report['user'] = user_id
+    basic_report['total_crcs_number'] = total_crcs_number
+    basic_report['ave_battery_speed'] \
         = '{}s {}%/h'.format(int(avg_battery_drop_speed),round(3600/avg_battery_drop_speed,2))
-    result['screen_on_power_speed'] = "NA"
-    result['screen_off_power_speed'] = "NA"
+    basic_report['screen_on_power_speed'] = "NA"
+    basic_report['screen_off_power_speed'] = "NA"
 
     if avg_battery_drop_speed_screen_on != 0:
-        result['screen_on_power_speed'] \
+        basic_report['screen_on_power_speed'] \
             = '{}s {}%/h'.format(int(avg_battery_drop_speed_screen_on),round(3600/avg_battery_drop_speed_screen_on,2))
 
 
     if avg_battery_drop_speed_screen_off:
-        result['screen_off_power_speed'] \
+        basic_report['screen_off_power_speed'] \
             = '{}s {}%/h'.format(int(avg_battery_drop_speed_screen_off),round(3600/avg_battery_drop_speed_screen_off,2))
-    result['device_mode'] = device_mode
-    result['device_version'] = device_version
-    result['time_period'] = str(crcs_end_time - crcs_start_time)
-    result['start_time_utc'] = crcs_start_time
-    result['end_time_utc'] = crcs_end_time
-    result['memory_info'] = memory_info
-    result['source_file'] = orig_file
+
+    basic_report['device_mode'] = device_mode
+    basic_report['device_version'] = device_version
+    basic_report['time_period'] = str(crcs_end_time - crcs_start_time)
+    basic_report['start_time_utc'] = crcs_start_time
+    basic_report['end_time_utc'] = crcs_end_time
+    basic_report['memory'] = generate_memory_report(df_memory)
+    basic_report['memory_power_fast'] = generate_memory_report(df_memory_power_fast)
+    basic_report['source_file'] = orig_file
 
 
 
@@ -186,7 +195,7 @@ def generate_basic_battery_report():
     #     title_exist = True
     # ws_basic.append(result.values())
 
-    for k,v in result.items():
+    for k,v in basic_report.items():
         ws_basic.append([k,v])
 
     pass
@@ -214,6 +223,7 @@ def process_cpu_logs():
     pass
 
 def process_power_fast_logs():
+    global df_memory_power_fast
     df_power_fast = df_power[df_power[7] <= BATTERY_DROP_WATER_LEVEL*60].copy()
     if df_power_fast.empty:
         return
@@ -223,27 +233,32 @@ def process_power_fast_logs():
     ws_power_fast = wb.create_sheet("battery_drop_fast")
     ws_power_netlog = wb.create_sheet("netlog_battery_drop_fast")
 
-    df_netlog_power = pandas.DataFrame()
+    df_netlog_power_fast = pandas.DataFrame()
 
     for index, value in df_power_fast.iterrows():
-        #print row['start_time'],row['end_time']
-        df_netlog_temp \
-            = df_netlog[(df_netlog[0] >= value['start_time']) & (df_netlog[0] <= value['end_time'])]
-        df_netlog_power = df_netlog_power.append(df_netlog_temp)
-
+        start_time = value['start_time']
+        end_time = value['end_time']
+        df_netlog_temp = df_netlog[(df_netlog[0] >= start_time) & (df_netlog[0] <= end_time)]
+        df_netlog_power_fast = df_netlog_power_fast.append(df_netlog_temp)
+        if not df_memory.empty:
+            df_memory_power_fast = df_memory_power_fast.append(
+                df_memory[(df_memory[0] >= start_time) & (df_memory[0] <= end_time)])
 
     df_power_fast = df_power_fast.append(df_backlight)
+    df_power_fast = df_power_fast.append(df_memory_power_fast)
     df_power_fast = df_power_fast.sort_values(df_power_fast.columns[0])
 
-    cols = df_netlog_power.columns[df_netlog_power.dtypes.eq('object')]
-    df_netlog_power[cols] = df_netlog_power[cols].apply(pandas.to_numeric,errors="ignore")
+    cols = df_netlog_power_fast.columns[df_netlog_power_fast.dtypes.eq('object')]
+    df_netlog_power_fast[cols] = df_netlog_power_fast[cols].apply(pandas.to_numeric,errors="ignore")
 
     for r in dataframe_to_rows(df_power_fast, index=False, header=False):
         ws_power_fast.append(r)
     pass
 
-    for r in dataframe_to_rows(df_netlog_power, index=False, header=False):
+    for r in dataframe_to_rows(df_netlog_power_fast, index=False, header=False):
         ws_power_netlog.append(r)
+
+
 
 
 def process_service_logs():
@@ -259,12 +274,30 @@ def process_service_logs():
     pass
 
 
-def process_memory_logs():
-    global memory_info
+def generate_memory_report(_df_memory):
+    str_memory_info = ""
 
-    df_memory = df_system[df_system[4] == 'memory'].copy()
+    process_list = _df_memory[6].unique()
+
+    for process in process_list:
+        s_memory_info = _df_memory[_df_memory[6] == process][11]
+        df_process_memory = s_memory_info.str.split(pat=":", expand=True)
+        df_process_memory[1] = pandas.to_numeric(df_process_memory[1])
+        mean = round(df_process_memory[1].mean(), 2)
+        max = round(df_process_memory[1].max(), 2)
+        str_memory_info += "[{}]:mean - {}, max - {} \n".format(process, mean, max)
+        pass
+
+
+    return str_memory_info
+
+def process_memory_logs():
+    global df_memory
+
+
     if df_memory.empty:
         return
+
     df_memory = df_memory[df_memory[5] == "process"].copy()
     ws_memory = wb.create_sheet("memory")
 
@@ -272,18 +305,6 @@ def process_memory_logs():
         ws_memory.append(r)
     pass
 
-    memory_info = ""
-
-    process_list = df_memory[6].unique()
-    
-    for process in process_list:
-        s_memory_info = df_memory[df_memory[6] == process][16]
-        df_process_memory = s_memory_info.str.split(pat=":", expand=True)
-        df_process_memory[1] = pandas.to_numeric(df_process_memory[1])
-        mean = round(df_process_memory[1].mean(),2)
-        max = round(df_process_memory[1].max(),2)
-        memory_info += "[{}]:mean - {}, max - {} \n".format(process,mean,max)
-        pass
 
 
 

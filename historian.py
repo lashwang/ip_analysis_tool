@@ -117,7 +117,7 @@ def parse_time(s, fmt):
     match = p.search(s)
     try:
         d = match.groupdict()
-    except IndexError:
+    except Exception:
         return -1.0
 
     ret = 0.0
@@ -1517,7 +1517,7 @@ def process_app_power_data(line):
         value = float(pattern.group(1))
         detail = pattern.group(2)
     except Exception:
-        value = float(t1)
+        value = t1
         detail = None
 
     app_power_list.append([uid,value,detail])

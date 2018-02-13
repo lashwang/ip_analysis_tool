@@ -19,6 +19,16 @@ import os, fnmatch
 BATTERY_DROP_WATER_LEVEL = 6
 
 
+NETLOG_TITLE = 'local_time  timestamp	clientAddress	logType	formatVersion	clientBytesIn	' \
+                'clientBytesOut	serverBytesIn	serverBytesOut	cacheBytesIn	cacheBytesOut	' \
+                'host	application	applicationStatus	operation	protocolStack	networkProtocolStack	' \
+                'networkInterface	responseDelay	responseDuration	requestId	subscriptionId	' \
+                'statusCode	errorCode	contentType	headerLength	contentLength	responseHash	' \
+                'analysisString	analysis	optimization	protocolDetection	destinationIp	' \
+                'destinationPort	redirectedToIp	redirectedToPort	sequenceNumber	requestDelay	' \
+                'radioAwarenessStatus	originatorId	csmCreationTime	clientSrcPort	cspSrcPort'
+
+
 def is_gz_file(filepath):
     with open(filepath, 'rb') as test_f:
         return binascii.hexlify(test_f.read(2)) == b'1f8b'
@@ -39,7 +49,7 @@ def open_file_input_string(input_file):
 def parse_crcs_from_file(f):
     global df_all,df_power,df_netlog,df_system,df_backlight,df_deviceinfo,df_memory,df_memory_power_fast
     global crcs_start_time,crcs_end_time,user_id,orig_file,total_crcs_number
-    global basic_report
+    global basic_report,device_time_zone
 
 
     df_all = pandas.DataFrame()
@@ -61,9 +71,7 @@ def parse_crcs_from_file(f):
 
     # save to excel
     ws_all = wb.create_sheet("all")
-    for r in dataframe_to_rows(df_all, index=False, header=False):
-        ws_all.append(r)
-    pass
+
 
 
     total_crcs_number = df_all.shape[0]
@@ -96,12 +104,24 @@ def parse_crcs_from_file(f):
     df_deviceinfo = df_system[df_system[4] == 'dev_info'].copy()
     df_memory = df_system[df_system[4] == 'memory'].copy()
 
+    calc_device_info()
+
+    ws_all.append(NETLOG_TITLE.split())
+
+    for r in dataframe_to_rows(df_all, index=False, header=False):
+        local_time = arrow.get(r[0]).to(device_time_zone)
+        r.insert(0, local_time.naive)
+        ws_all.append(r)
+    pass
+
+
     process_cpu_logs()
     process_memory_logs()
     process_power_fast_logs()
     process_service_logs()
     generate_basic_battery_report()
-    pass
+
+
 
 def calc_screen_battery_usage():
     global avg_battery_drop_speed_screen_on,avg_battery_drop_speed_screen_off
@@ -151,17 +171,30 @@ def calc_screen_battery_usage():
     pass
 
 
-def generate_basic_battery_report():
-    global basic_report,df_memory,df_memory_power_fast
-    avg_battery_drop_speed = df_power[7].mean()
+def calc_device_info():
+    global device_mode,device_version,device_time_zone
+    global df_deviceinfo
     device_mode = "unknown"
     device_version = "unknown"
+    device_time_zone = "UTC"
     df_device = df_deviceinfo[df_deviceinfo[5] == '0']
-    if df_device.shape[0] > 0:
+    df_time_zone = df_deviceinfo[df_deviceinfo[5] == "time_zone"]
+    if not df_device.empty:
         device_mode = df_device.iloc[0,:][6]
         device_version = df_device.iloc[0,:][7]
         pass
 
+    if not df_time_zone.empty:
+        device_time_zone = df_time_zone.iloc[0,:][7]
+        pass
+
+
+
+def generate_basic_battery_report():
+    global basic_report,df_memory,df_memory_power_fast
+    global device_mode, device_version, device_time_zone
+
+    avg_battery_drop_speed = df_power[7].mean()
     calc_screen_battery_usage()
     basic_report['user'] = user_id
     basic_report['total_crcs_number'] = total_crcs_number
@@ -181,6 +214,7 @@ def generate_basic_battery_report():
 
     basic_report['device_mode'] = device_mode
     basic_report['device_version'] = device_version
+    basic_report['time_zone'] = device_time_zone
     basic_report['time_period'] = str(crcs_end_time - crcs_start_time)
     basic_report['start_time_utc'] = crcs_start_time
     basic_report['end_time_utc'] = crcs_end_time

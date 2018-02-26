@@ -401,6 +401,7 @@ def on_file_uploaded(file,output_path):
     filename = user_id + ".xlsx"
     print 'saving output file'
     wb.save(output_path + "/" + filename)
+    print 'saved output file'
     return filename
 
 if __name__ == "__main__":

@@ -114,11 +114,15 @@ def parse_crcs_from_file(f):
         ws_all.append(r)
     pass
 
-
+    print "processing cpu logs"
     process_cpu_logs()
+    print "processing memory logs"
     process_memory_logs()
+    print "processing power fast logs"
     process_power_fast_logs()
+    print "processing service logs"
     process_service_logs()
+    print "processing basic report logs"
     generate_basic_battery_report()
 
 

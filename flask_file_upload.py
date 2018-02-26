@@ -63,6 +63,7 @@ def upload_file():
                 mkdir_p(output_path)
             app.config['UPLOAD_FOLDER'] = output_path
             ouput_filename = on_file_uploaded(os.path.join(source_file_path, filename), output_path)
+            print 'get output file path'.format(ouput_filename)
             #return redirect(url_for('uploaded_file',filename=ouput_filename))
             return '''
             <!DOCTYPE html>

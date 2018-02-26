@@ -399,6 +399,7 @@ def on_file_uploaded(file,output_path):
     ws_basic.title = "basic battery info"
     parse_crcs_from_file(file)
     filename = user_id + ".xlsx"
+    print 'saving output file'
     wb.save(output_path + "/" + filename)
     return filename
 

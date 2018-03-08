@@ -61,13 +61,13 @@ def parse_crcs_from_file(f):
     basic_report = OrderedDict()
 
     file_object = open_file_input_string(f)
-    df_all = pandas.read_csv(file_object,header=None,names = list(range(0,50)),low_memory=False)
+    df_all = pandas.read_csv(file_object,header=None,names = list(range(0,len(NETLOG_TITLE.split()))),low_memory=False)
     print "read_csv success,record number:" + str(df_all.shape[0])
 
     if df_all.empty:
         return
 
-    df_all.dropna(axis=1,how="all",inplace=True)
+    df_all = df_all.dropna(axis=1,how="all")
 
     # save to excel
     ws_all = wb.create_sheet("all")
@@ -114,9 +114,10 @@ def parse_crcs_from_file(f):
     print "starting to append all logs"
 
     for index, row in df_all.iterrows():
-        #local_time = arrow.get(r[0]).to(device_time_zone)
-        #r.insert(0, local_time.naive)
-        #ws_all.append(r)
+        r = list(row)
+        local_time = arrow.get(r[0]).to(device_time_zone)
+        r.insert(0, local_time.naive)
+        ws_all.append(r)
         pass
     pass
     print "finish to append all logs"

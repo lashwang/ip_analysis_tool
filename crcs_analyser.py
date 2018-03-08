@@ -61,7 +61,7 @@ def parse_crcs_from_file(f):
     basic_report = OrderedDict()
 
     file_object = open_file_input_string(f)
-    df_all = pandas.read_csv(file_object,header=None,names = list(range(0,50)))
+    df_all = pandas.read_csv(file_object,header=None,names = list(range(0,50)),low_memory=False)
     print "read_csv success,record number:" + str(df_all.shape[0])
 
     if df_all.empty:

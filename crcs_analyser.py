@@ -111,16 +111,18 @@ def parse_crcs_from_file(f):
 
     ws_all.append(NETLOG_TITLE.split())
 
-    print "starting to append all logs"
 
-    for index, row in df_all.iterrows():
-        r = list(row)
-        local_time = arrow.get(r[0]).to(device_time_zone)
-        r.insert(0, local_time.naive)
-        ws_all.append(r)
+    if df_all.shape[0]<=30000:
+        print "starting to append all logs"
+
+        for index, row in df_all.iterrows():
+            r = list(row)
+            local_time = arrow.get(r[0]).to(device_time_zone)
+            r.insert(0, local_time.naive)
+            ws_all.append(r)
+            pass
         pass
-    pass
-    print "finish to append all logs"
+        print "finish to append all logs"
 
     print "processing cpu logs"
     process_cpu_logs()

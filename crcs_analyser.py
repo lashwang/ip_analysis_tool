@@ -75,11 +75,14 @@ def parse_crcs_from_file(f):
 
 
     total_crcs_number = df_all.shape[0]
+    print "starting to convert datatime"
     df_all[0] = pandas.to_datetime(df_all.iloc[:,0],format="%Y-%m-%d %H:%M:%S",errors='coerce')
+    print "finished to convert datatime"
     crcs_start_time = df_all.iloc[0,0]
     crcs_end_time = df_all.iloc[-1,0]
     orig_file = f
     user_id = df_all.iloc[0,1]
+
 
 
     # battery data frame

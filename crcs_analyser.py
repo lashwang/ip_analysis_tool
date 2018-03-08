@@ -117,6 +117,7 @@ def parse_crcs_from_file(f):
         #local_time = arrow.get(r[0]).to(device_time_zone)
         #r.insert(0, local_time.naive)
         #ws_all.append(r)
+        pass
     pass
     print "finish to append all logs"
 

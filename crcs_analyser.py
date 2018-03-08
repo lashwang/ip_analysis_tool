@@ -112,17 +112,16 @@ def parse_crcs_from_file(f):
     ws_all.append(NETLOG_TITLE.split())
 
 
-    if df_all.shape[0]<=30000:
-        print "starting to append all logs"
+    print "starting to append all logs"
 
-        for index, row in df_all.iterrows():
-            r = list(row)
-            local_time = arrow.get(r[0]).to(device_time_zone)
-            r.insert(0, local_time.naive)
-            ws_all.append(r)
-            pass
+    for index, row in df_all.iterrows():
+        r = list(row)
+        local_time = arrow.get(r[0]).to(device_time_zone)
+        r.insert(0, local_time.naive)
+        ws_all.append(r)
         pass
-        print "finish to append all logs"
+    pass
+    print "finish to append all logs"
 
     print "processing cpu logs"
     process_cpu_logs()
@@ -395,8 +394,8 @@ class CRCSAnaLyser(object):
 
 def main():
     global wb,ws_basic
-    wb = Workbook()
-    ws_basic = wb.active
+    wb = Workbook(write_only=True)
+    ws_basic = wb.create_sheet()
     ws_basic.title = "basic battery info"
     fire.Fire(CRCSAnaLyser)
     wb.save("battery_report_" + arrow.now().format("YYYY_MM_DD") + ".xlsx")
@@ -404,8 +403,8 @@ def main():
 
 def on_file_uploaded(file,output_path):
     global wb, ws_basic
-    wb = Workbook()
-    ws_basic = wb.active
+    wb = Workbook(write_only=True)
+    ws_basic = wb.create_sheet()
     ws_basic.title = "basic battery info"
     parse_crcs_from_file(file)
     filename = user_id + ".xlsx"

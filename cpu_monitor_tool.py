@@ -12,9 +12,10 @@ gMonitorThreads = [".adclear:engine","n.adclear:proxy"]
 def main():
     check_device()
     psAdclear = read_process_for_adclear()
-    for ps in psAdclear:
+    for pid in psAdclear:
+        read_task_info(int(pid))
+        pass
 
-    pass
 
 
 
@@ -53,6 +54,31 @@ def read_process_for_adclear():
 
 
     return psAdclear
+
+
+def read_task_info(pid):
+    cmd = "adb shell ls /proc/{}/task".format(pid)
+    output = commands.getstatusoutput(cmd)
+    if output[0] != 0:
+        print "read sub task failed for pid {}".format(pid)
+        return
+
+    taskList = output[1].split("\n")
+    for tid in taskList:
+        tid = int(tid.strip())
+        cmd = "adb shell cat /proc/{}/task/{}/stat".format(pid,tid)
+        output = commands.getstatusoutput(cmd)
+        if output[0] != 0:
+            continue
+
+        taskInfo = output[1].split()
+        taskName = taskInfo[1]
+        taskName = taskName[1:]
+        taskName = taskName[:-1]
+
+        if taskName in gMonitorThreads:
+            if pid != tid:
+                print taskInfo
 
 
 

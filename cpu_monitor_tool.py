@@ -92,7 +92,7 @@ def read_process_for_adclear():
 def find_suspicious_task(pid,tid,taskName):
     trace_path = 'dalvik-dump.txt'
     cmd = "adb shell bugreport"
-    #output = commands.getstatusoutput(cmd)
+    output = commands.getstatusoutput(cmd)
     cmd = 'adb shell su -c "cat /data/anr/traces.txt.bugreport"'
     output = commands.getstatusoutput(cmd)
     with open(trace_path, 'w') as file:
@@ -118,7 +118,6 @@ def find_suspicious_task(pid,tid,taskName):
     server.ehlo()
     server.sendmail(mail_account, recipients, msg.as_string())
     server.close()
-    exit(0)
     pass
 
 def read_task_info(pid):
@@ -142,7 +141,7 @@ def read_task_info(pid):
         taskName = taskName[:-1]
 
         if taskName in gMonitorThreads:
-            print "find {} with pid/tid:{}/{}".format(taskName,pid,tid)
+            #print "find {} with pid/tid:{}/{}".format(taskName,pid,tid)
             if pid != tid:
                 print "find suspicious task!!!!"
                 find_suspicious_task(pid, tid, taskName)

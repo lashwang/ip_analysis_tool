@@ -38,7 +38,8 @@ def main():
     while True:
         try:
             psAdclear = read_process_for_adclear()
-            print str(datetime.datetime.now()) + ":find engine/proxy pids:" + str(psAdclear)
+            if len(psAdclear) > 0:
+                print str(datetime.datetime.now()) + ":find engine/proxy pids:" + str(psAdclear)
             for pid in psAdclear:
                 read_task_info(int(pid))
             pass
@@ -91,9 +92,9 @@ def read_process_for_adclear():
 
 def find_suspicious_task(pid,tid,taskName):
     trace_path = 'dalvik-dump.txt'
-    cmd = "adb shell bugreport"
+    cmd = 'adb shell su -c "kill -3 {}"'.format(pid)
     output = commands.getstatusoutput(cmd)
-    cmd = 'adb shell su -c "cat /data/anr/traces.txt.bugreport"'
+    cmd = 'adb shell su -c "cat /data/anr/traces.txt"'
     output = commands.getstatusoutput(cmd)
     with open(trace_path, 'w') as file:
         file.write(output[1])

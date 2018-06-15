@@ -2,6 +2,16 @@
 # -*- coding: utf-8 -*-
 import fire
 import re
+from openpyxl import Workbook
+from openpyxl.compat import range
+from openpyxl.utils import get_column_letter
+
+wb = Workbook()
+dest_filename = 'logcat_output.xlsx'
+ws1 = wb.active
+ws1.title = "csm"
+
+
 
 
 
@@ -11,15 +21,33 @@ def parser_line(line):
         return
 
     line = line.strip()
+    reg_str \
+        = r"\[Native\]\S+\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+\S+\s+\[(\S+):(\S+)\]\s+\((\S+)\)\s+-\s+CSM\s+\[(\S+)\]\s+(.*)"
 
-    # '06-08 14:51:13.418 22651 22786 V [Native]proxy: 06-08 14:51:13.418 +0800 22786 [FT] [ProcessorInterface.cpp:111] (0) - CSM [00068001] in_eof_process CMT_EOF process started'
 
-    compiled_pattern = re.compile(r'(\s+)CSM(\s*)\[(\S+)\]')
-
-    matchObj = compiled_pattern.match(line)
+    matchObj = re.search(reg_str,line)
 
     if matchObj:
-        print line
+        index = 1
+        date = matchObj.group(index)
+        index += 1
+        time = matchObj.group(index)
+        index += 1
+        time_zone = matchObj.group(index)
+        index += 1
+        tid = matchObj.group(index)
+        index += 1
+        filename = matchObj.group(index)
+        index += 1
+        flie_line = matchObj.group(index)
+        index += 1
+        errcode = matchObj.group(index)
+        index += 1
+        csm = matchObj.group(index)
+        index += 1
+        log = matchObj.group(index)
+        ws1.append([date,time,tid,csm,filename,flie_line,errcode,log])
+
 
 
     pass
@@ -31,6 +59,8 @@ def parse_file(fname):
 
     for line in content:
         parser_line(line)
+
+    wb.save(filename=dest_filename)
 
     pass
 

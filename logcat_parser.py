@@ -58,7 +58,10 @@ def parse_file(fname):
         content = f.readlines()
 
     for line in content:
-        parser_line(line)
+        try:
+            parser_line(line)
+        except Exception:
+            print "error:" + line
 
     wb.save(filename=dest_filename)
 

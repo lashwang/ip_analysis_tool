@@ -11,6 +11,8 @@ dest_filename = 'logcat_output.xlsx'
 ws_csm = wb.active
 ws_csm.title = "csm"
 ws_netlog = wb.create_sheet(title="netlog")
+ws_logcat_all = wb.create_sheet(title="logcat_all")
+
 
 NET_LOG_HEADERS_V15 = ['timestamp', 'clientAddress', 'logType', 'formatVersion', \
                        'clientBytesIn', 'clientBytesOut', 'serverBytesIn', 'serverBytesOut', \
@@ -28,6 +30,8 @@ NET_LOG_HEADERS_V15 = ['timestamp', 'clientAddress', 'logType', 'formatVersion',
 
 
 CSM_LOG_HEADER = ['date', 'time', 'tid', 'csm', 'filename', 'flie_line', 'errcode', 'log']
+
+LOGCAT_HEADER = ['date', 'time', 'tid', 'csm', 'filename', 'flie_line', 'errcode', 'log']
 
 def parser_line(line):
 
@@ -68,6 +72,27 @@ def parser_line(line):
         netlog_str = matchObj.group(1)
         ws_netlog.append(netlog_str.split(','))
 
+    req_str = r"[Native](\S+):\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s\[(\S+)\]\s+\[(\S+):(\S+)\]\s\((\S+)\)\s+-\s+(.*)"
+    if matchObj:
+        index = 1
+        module = matchObj.group(index)
+        index += 1
+        date = matchObj.group(index)
+        index += 1
+        time = matchObj.group(index)
+        index += 1
+        time_zone = matchObj.group(index)
+        index += 1
+        tid = matchObj.group(index)
+        filename = matchObj.group(index)
+        index += 1
+        flie_line = matchObj.group(index)
+        index += 1
+        errcode = matchObj.group(index)
+        index += 1
+        log = matchObj.group(index)
+        ws_logcat_all.append([date, time,module, tid, filename, flie_line, errcode, log])
+
 
     pass
 
@@ -79,6 +104,7 @@ def parse_file(fname):
 
     ws_csm.append(CSM_LOG_HEADER)
     ws_netlog.append(NET_LOG_HEADERS_V15)
+    ws_logcat_all.append(LOGCAT_HEADER)
     for line in content:
         try:
             parser_line(line)

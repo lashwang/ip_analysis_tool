@@ -31,7 +31,7 @@ NET_LOG_HEADERS_V15 = ['timestamp', 'clientAddress', 'logType', 'formatVersion',
 
 CSM_LOG_HEADER = ['date', 'time', 'tid', 'csm', 'filename', 'flie_line', 'errcode', 'log']
 
-LOGCAT_HEADER = ['date', 'time', 'tid', 'csm', 'filename', 'flie_line', 'errcode', 'log']
+LOGCAT_HEADER = ['date', 'time', 'module','tid','filename', 'flie_line', 'errcode', 'log']
 
 def parser_line(line):
 
@@ -72,7 +72,8 @@ def parser_line(line):
         netlog_str = matchObj.group(1)
         ws_netlog.append(netlog_str.split(','))
 
-    req_str = r"[Native](\S+):\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s\[(\S+)\]\s+\[(\S+):(\S+)\]\s\((\S+)\)\s+-\s+(.*)"
+    reg_str = r"\[Native\](\S+):\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s\[\S+\]\s+\[(\S+):(\S+)\]\s\((\S+)\)\s+-\s+(.*)"
+    matchObj = re.search(reg_str, line)
     if matchObj:
         index = 1
         module = matchObj.group(index)
@@ -84,6 +85,7 @@ def parser_line(line):
         time_zone = matchObj.group(index)
         index += 1
         tid = matchObj.group(index)
+        index += 1
         filename = matchObj.group(index)
         index += 1
         flie_line = matchObj.group(index)

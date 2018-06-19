@@ -14,6 +14,8 @@ ws_netlog = wb.create_sheet(title="netlog")
 ws_logcat_all = wb.create_sheet(title="logcat_all")
 
 
+csm_dict = {}
+
 NET_LOG_HEADERS_V15 = ['timestamp', 'clientAddress', 'logType', 'formatVersion', \
                        'clientBytesIn', 'clientBytesOut', 'serverBytesIn', 'serverBytesOut', \
                        'cacheBytesIn', 'cacheBytesOut', 'host', 'application', 'applicationStatus', \
@@ -65,6 +67,11 @@ def parser_line(line):
         index += 1
         log = matchObj.group(index)
         ws_csm.append([date, time, tid, csm, filename, flie_line, errcode, log])
+
+        if csm not in csm_dict:
+            csm_dict[csm] = wb.create_sheet(title="" + csm)
+
+        csm_dict[csm].append([date, time, tid, csm, filename, flie_line, errcode, log])
 
     reg_str = r"NetLog\s+\(.*\):\s+(.*)"
     matchObj = re.search(reg_str, line)

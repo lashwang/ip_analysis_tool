@@ -37,16 +37,17 @@ LOGCAT_HEADER = ['date', 'time', 'module','tid','filename', 'flie_line', 'errcod
 
 def parser_line(line):
 
-    if "[Native]" not in line:
+    if "[Native]" not in line and "[JAVA]" not in line:
         return
 
+    match_for_native = False
+
     line = line.strip()
+
+    # get native string.
     reg_str \
         = r"\[Native\]\S+\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+\S+\s+\[(\S+):(\S+)\]\s+\((\S+)\)\s+-\s+CSM\s+\[(\S+)\]\s+(.*)"
-
-
     matchObj = re.search(reg_str,line)
-
     if matchObj:
         index = 1
         date = matchObj.group(index)
@@ -73,11 +74,11 @@ def parser_line(line):
         #
         # csm_dict[csm].append([date, time, tid, csm, filename, flie_line, errcode, log])
 
-    reg_str = r"NetLog\s+\(.*\):\s+(.*)"
-    matchObj = re.search(reg_str, line)
-    if matchObj:
-        netlog_str = matchObj.group(1)
-        ws_netlog.append(netlog_str.split(','))
+    # reg_str = r"NetLog\s+\(.*\):\s+(.*)"
+    # matchObj = re.search(reg_str, line)
+    # if matchObj:
+    #     netlog_str = matchObj.group(1)
+    #     ws_netlog.append(netlog_str.split(','))
 
     reg_str = r"\[Native\](\S+):\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s\[\S+\]\s+\[(\S+):(\S+)\]\s\((\S+)\)\s+-\s+(.*)"
     matchObj = re.search(reg_str, line)
@@ -101,6 +102,27 @@ def parser_line(line):
         index += 1
         log = matchObj.group(index)
         ws_logcat_all.append([date, time,module, tid, filename, flie_line, errcode, log])
+        match_for_native = True
+
+
+    # get java related logs.
+    if not match_for_native:
+        reg_str = r"\[JAVA\](\S+):\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+\S+\s+(.*)"
+        matchObj = re.search(reg_str, line)
+        if matchObj:
+            index = 1
+            classname = matchObj.group(index)
+            index += 1
+            date = matchObj.group(index)
+            index += 1
+            time = matchObj.group(index)
+            index += 1
+            time_zone = matchObj.group(index)
+            index += 1
+            tid = matchObj.group(index)
+            index += 1
+            log = matchObj.group(index)
+            index += 1
 
 
     pass

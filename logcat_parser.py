@@ -37,7 +37,12 @@ LOGCAT_HEADER = ['date', 'time', 'module','pid','tid','filename', 'flie_line', '
 
 LOGCAT_HEADER_JAVA = ['date', 'time', 'pid','tid','classname','log']
 
-
+USELESS_CLASS_JAVA_LOGS = [
+    "ForegroundAppMonitor",
+    "Z7AlarmManagerImpl",
+    "UtilService",
+    "LogHandler",
+]
 
 def parser_line(line):
 
@@ -137,7 +142,8 @@ def parser_line(line):
             index += 1
             log = matchObj.group(index)
             index += 1
-            ws_logcat_java.append([date,time,pid,tid,classname,log])
+            if classname not in USELESS_CLASS_JAVA_LOGS:
+                ws_logcat_java.append([date,time,pid,tid,classname,log])
 
 
     pass

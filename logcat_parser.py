@@ -44,6 +44,15 @@ USELESS_CLASS_JAVA_LOGS = [
     "LogHandler",
 ]
 
+USELESS_FILE_CPP_LOGS = [
+    "decoder_ifc.c",
+    "Decoder.hpp",
+    "encoder_ifc.c",
+    "codec_plain_reader.c",
+    "codec_processor_reader.c",
+    "codec_plain_writer.c",
+]
+
 def parser_line(line):
 
     if "[Native]" not in line and "[JAVA]" not in line:
@@ -120,7 +129,8 @@ def parser_line(line):
         errcode = matchObj.group(index)
         index += 1
         log = matchObj.group(index)
-        ws_logcat_all.append([date, time,module,pid, tid, filename, flie_line, errcode, log])
+        if filename not in USELESS_FILE_CPP_LOGS:
+            ws_logcat_all.append([date, time,module,pid, tid, filename, flie_line, errcode, log])
         match_for_native = True
 
 

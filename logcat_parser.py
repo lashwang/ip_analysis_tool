@@ -68,10 +68,10 @@ def parser_line(line):
         log = matchObj.group(index)
         ws_csm.append([date, time, tid, csm, filename, flie_line, errcode, log])
 
-        if csm not in csm_dict:
-            csm_dict[csm] = wb.create_sheet(title="" + csm)
-
-        csm_dict[csm].append([date, time, tid, csm, filename, flie_line, errcode, log])
+        # if csm not in csm_dict:
+        #     csm_dict[csm] = wb.create_sheet(title="" + csm)
+        #
+        # csm_dict[csm].append([date, time, tid, csm, filename, flie_line, errcode, log])
 
     reg_str = r"NetLog\s+\(.*\):\s+(.*)"
     matchObj = re.search(reg_str, line)

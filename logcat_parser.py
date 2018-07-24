@@ -14,7 +14,7 @@ ws_netlog = wb.create_sheet(title="netlog")
 ws_logcat_all = wb.create_sheet(title="logcat_all")
 ws_logcat_java = wb.create_sheet(title="logcat_java")
 
-csm_dict = {}
+csm_list = []
 
 NET_LOG_HEADERS_V15 = ['timestamp', 'clientAddress', 'logType', 'formatVersion', \
                        'clientBytesIn', 'clientBytesOut', 'serverBytesIn', 'serverBytesOut', \
@@ -97,6 +97,11 @@ def parser_line(line):
         log = matchObj.group(index)
         ws_csm.append([date, time, pid,tid, csm, filename, flie_line, errcode, log])
 
+        # if csm not in csm_list:
+        #     csm_list.append(csm)
+
+
+
         # if csm not in csm_dict:
         #     csm_dict[csm] = wb.create_sheet(title="" + csm)
         #
@@ -134,6 +139,13 @@ def parser_line(line):
         match_for_native = True
 
 
+    if match_for_native:
+        reg_str = r"(.*)\[(\S+)\](.*)"
+        matchObj = re.search(reg_str, line)
+        if matchObj:
+            csm = matchObj.group(2)
+            ws_csm.append([date, time, pid, tid, csm, filename, flie_line, errcode, log])
+
     # get java related logs.
     if not match_for_native:
         reg_str = r"\[JAVA\](\S+):\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+\S+\s+(.*)"
@@ -160,6 +172,8 @@ def parser_line(line):
 
 
 def parse_file(fname):
+    dest_filename = fname + ".xlsx";
+
     with open(fname) as f:
         content = f.readlines()
 

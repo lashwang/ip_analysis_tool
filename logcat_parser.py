@@ -141,7 +141,7 @@ def parser_line(line):
 
     if match_for_native:
         reg_str = r"(.*)\[(\S+)\](.*)"
-        matchObj = re.search(reg_str, line)
+        matchObj = re.search(reg_str, log)
         if matchObj:
             csm = matchObj.group(2)
             ws_csm.append([date, time, pid, tid, csm, filename, flie_line, errcode, log])

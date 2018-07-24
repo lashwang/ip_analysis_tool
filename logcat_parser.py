@@ -59,6 +59,7 @@ def parser_line(line):
         return
 
     match_for_native = False
+    match_for_csm = False
 
     line = line.strip()
     pid = -1
@@ -96,6 +97,7 @@ def parser_line(line):
         index += 1
         log = matchObj.group(index)
         ws_csm.append([date, time, pid,tid, csm, filename, flie_line, errcode, log])
+        match_for_csm = True
 
         # if csm not in csm_list:
         #     csm_list.append(csm)
@@ -139,8 +141,8 @@ def parser_line(line):
         match_for_native = True
 
 
-    if match_for_native:
-        reg_str = r"(.*)\[(\S+)\](.*)"
+    if match_for_native and not match_for_csm:
+        reg_str = r"(.*)\[([0-9a-fA-F]{8})\](.*)"
         matchObj = re.search(reg_str, log)
         if matchObj:
             csm = matchObj.group(2)

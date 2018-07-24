@@ -55,7 +55,12 @@ USELESS_FILE_CPP_LOGS = [
     "Protocol.hpp"
 ]
 
+old_logcat_format = False
+
+
 def parser_line(line):
+
+    global old_logcat_format
 
     if "[Native]" not in line and "[JAVA]" not in line:
         return
@@ -68,12 +73,23 @@ def parser_line(line):
     tid = -1
 
     # get common header
-    reg_str = r"^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+"
-    matchObj = re.search(reg_str, line)
-    if matchObj:
-        pid = matchObj.group(3)
-        tid = matchObj.group(4)
+    if not old_logcat_format:
+        reg_str = r"^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+"
+        matchObj = re.search(reg_str, line)
+        if matchObj:
+            pid = matchObj.group(3)
+            tid = matchObj.group(4)
+            if not pid.isdigit():
+                old_logcat_format = True
+        else:
+            old_logcat_format = True
 
+    if old_logcat_format:
+        reg_str = r"^\S+\s+\S+\s+\S\/\S+\(\s*(\S+)\):.*"
+        matchObj = re.search(reg_str, line)
+        if matchObj:
+            pid = matchObj.group(1)
+        pass
 
     # get native string.
     reg_str \

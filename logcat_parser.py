@@ -51,6 +51,8 @@ USELESS_FILE_CPP_LOGS = [
     "codec_plain_reader.c",
     "codec_processor_reader.c",
     "codec_plain_writer.c",
+    "Protocol.cpp",
+    "Protocol.hpp"
 ]
 
 def parser_line(line):
@@ -109,11 +111,11 @@ def parser_line(line):
         #
         # csm_dict[csm].append([date, time, tid, csm, filename, flie_line, errcode, log])
 
-    # reg_str = r"NetLog\s+\(.*\):\s+(.*)"
-    # matchObj = re.search(reg_str, line)
-    # if matchObj:
-    #     netlog_str = matchObj.group(1)
-    #     ws_netlog.append(netlog_str.split(','))
+    reg_str = r"NetLog\s+\(.*\):\s+(.*)"
+    matchObj = re.search(reg_str, line)
+    if matchObj:
+        netlog_str = matchObj.group(1)
+        ws_netlog.append(netlog_str.split(','))
 
     reg_str = r"\[Native\](\S+):\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s\[\S+\]\s+\[(\S+):(\S+)\]\s\((\S+)\)\s+-\s+(.*)"
     matchObj = re.search(reg_str, line)

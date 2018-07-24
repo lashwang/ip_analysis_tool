@@ -31,9 +31,9 @@ NET_LOG_HEADERS_V15 = ['timestamp', 'clientAddress', 'logType', 'formatVersion',
                        ]
 
 
-CSM_LOG_HEADER = ['date', 'time','pid', 'tid', 'csm', 'filename', 'flie_line', 'errcode', 'log']
+CSM_LOG_HEADER = ['date', 'time','pid', 'tid', 'csm', 'filename', 'errcode', 'log']
 
-LOGCAT_HEADER = ['date', 'time', 'module','pid','tid','filename', 'flie_line', 'errcode', 'log']
+LOGCAT_HEADER = ['date', 'time', 'module','pid','tid','filename', 'errcode', 'log']
 
 LOGCAT_HEADER_JAVA = ['date', 'time', 'pid','tid','classname','log']
 
@@ -96,7 +96,7 @@ def parser_line(line):
         csm = matchObj.group(index)
         index += 1
         log = matchObj.group(index)
-        ws_csm.append([date, time, pid,tid, csm, filename, flie_line, errcode, log])
+        ws_csm.append([date, time, pid,tid, csm, filename + ":" + flie_line, errcode, log])
         match_for_csm = True
 
         # if csm not in csm_list:
@@ -137,7 +137,7 @@ def parser_line(line):
         index += 1
         log = matchObj.group(index)
         if filename not in USELESS_FILE_CPP_LOGS:
-            ws_logcat_all.append([date, time,module,pid, tid, filename, flie_line, errcode, log])
+            ws_logcat_all.append([date, time,module,pid, tid, filename + ":" + flie_line, errcode, log])
         match_for_native = True
 
 
@@ -146,7 +146,7 @@ def parser_line(line):
         matchObj = re.search(reg_str, log)
         if matchObj:
             csm = matchObj.group(2)
-            ws_csm.append([date, time, pid, tid, csm, filename, flie_line, errcode, log])
+            ws_csm.append([date, time, pid, tid, csm, filename + ":" + flie_line, errcode, log])
 
     # get java related logs.
     if not match_for_native:

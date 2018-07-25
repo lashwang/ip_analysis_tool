@@ -13,6 +13,7 @@ ws_csm.title = "csm"
 ws_netlog = wb.create_sheet(title="netlog")
 ws_logcat_all = wb.create_sheet(title="logcat_all")
 ws_logcat_java = wb.create_sheet(title="logcat_java")
+ws_logcat_crash = wb.create_sheet(title="logcat_crash")
 
 csm_list = []
 
@@ -61,12 +62,24 @@ old_logcat_format = False
 def parser_line(line):
 
     global old_logcat_format
+    match_for_native = False
+    match_for_csm = False
+    match_for_crash = True
+
+
+    reg_str = r"F\s*\w+\s*\:\s*(.*)"
+    matchObj = re.search(reg_str, line)
+    if matchObj:
+        log = matchObj.group(1)
+        ws_logcat_crash.append(log)
+        return
+
+
+
 
     if "[Native]" not in line and "[JAVA]" not in line:
         return
 
-    match_for_native = False
-    match_for_csm = False
 
     line = line.strip()
     pid = -1

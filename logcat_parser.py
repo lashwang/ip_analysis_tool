@@ -64,14 +64,13 @@ def parser_line(line):
     global old_logcat_format
     match_for_native = False
     match_for_csm = False
-    match_for_crash = True
 
 
-    reg_str = r"F\s*\w+\s*\:\s*(.*)"
+    reg_str = r"\s+F\s+\w+\s*\:\s*(.*)"
     matchObj = re.search(reg_str, line)
     if matchObj:
         log = matchObj.group(1)
-        ws_logcat_crash.append(log)
+        ws_logcat_crash.append([log])
         return
 
 

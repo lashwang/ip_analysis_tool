@@ -16,7 +16,7 @@ ws_logcat_java = wb.create_sheet(title="logcat_java")
 ws_logcat_crash = wb.create_sheet(title="logcat_crash")
 ws_thread_pool = wb.create_sheet(title="thread_pool")
 
-ws_thread_pool.append("csm_id,task_name,task_id,time,pending_number".split(","))
+ws_thread_pool.append("time,pid,tid,csm_id,task_name,task_id,duration,pending_number".split(","))
 
 
 csm_list = []
@@ -189,9 +189,9 @@ def parser_line(line):
         task_name = matchObj.group(3)
         task_code = matchObj.group(4)
         csm_id = matchObj.group(5)
-        time = matchObj.group(6)
+        duration = int(matchObj.group(6))
         pending_task_number = matchObj.group(7)
-        ws_thread_pool.append([csm_id,task_name,task_code,time,pending_task_number])
+        ws_thread_pool.append([time,pid,tid,csm_id,task_name,task_code,duration,pending_task_number])
         #print line
 
     # get java related logs.

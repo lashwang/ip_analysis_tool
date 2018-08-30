@@ -14,10 +14,14 @@ ws_netlog = wb.create_sheet(title="netlog")
 ws_logcat_all = wb.create_sheet(title="logcat_all")
 ws_logcat_java = wb.create_sheet(title="logcat_java")
 ws_logcat_crash = wb.create_sheet(title="logcat_crash")
+ws_thread_pool = wb.create_sheet(title="thread_pool")
+
+ws_thread_pool.append("csm_id,task_name,task_id,time,pending_number".split(","))
+
 
 csm_list = []
 
-NET_LOG_HEADERS_V15 = ['timestamp', 'clientAddress', 'logType', 'formatVersion', \
+NET_LOG_HEADERS_V15 = ['timestamp','logType', 'formatVersion', \
                        'clientBytesIn', 'clientBytesOut', 'serverBytesIn', 'serverBytesOut', \
                        'cacheBytesIn', 'cacheBytesOut', 'host', 'application', 'applicationStatus', \
                        'operation', 'protocolStack', 'networkProtocolStack', 'networkInterface', \
@@ -178,6 +182,18 @@ def parser_line(line):
             csm = matchObj.group(2)
             ws_csm.append([date, time, pid, tid, csm, filename + ":" + flie_line, errcode, log])
 
+    reg_str \
+        = "\[threadpool.cpp:(\d+)\](.+)Executed task\s+(.+)\((\d+)\)\,\s+.*CSM\s+\[(\S+)\].*take\s+(\d+)ms,pending task:(\d+)"
+    matchObj = re.search(reg_str, line)
+    if matchObj:
+        task_name = matchObj.group(3)
+        task_code = matchObj.group(4)
+        csm_id = matchObj.group(5)
+        time = matchObj.group(6)
+        pending_task_number = matchObj.group(7)
+        ws_thread_pool.append([csm_id,task_name,task_code,time,pending_task_number])
+        #print line
+
     # get java related logs.
     if not match_for_native:
         reg_str = r"\[JAVA\](\S+):\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+\S+\s+(.*)"
@@ -217,8 +233,8 @@ def parse_file(fname):
     for line in content:
         try:
             parser_line(line)
-        except Exception:
-            print "error:" + line
+        except Exception,e:
+            print "error:" + e
 
     wb.save(filename=dest_filename)
 

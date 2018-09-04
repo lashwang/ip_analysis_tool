@@ -234,7 +234,7 @@ def parse_file(fname):
         try:
             parser_line(line)
         except Exception,e:
-            print "error:" + e
+            print "error:" + e.message
 
     wb.save(filename=dest_filename)
 

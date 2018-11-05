@@ -6,7 +6,7 @@ from openpyxl import Workbook
 from openpyxl.compat import range
 from openpyxl.utils import get_column_letter
 from abc import ABCMeta, abstractmethod
-
+import arrow
 
 
 
@@ -20,6 +20,8 @@ log_thread_dic = {}
 class LogParserBase():
     __metaclass__ = ABCMeta
     parer_function = None
+    last_thread_record = {}
+
 
 
     def __init__(self):
@@ -34,7 +36,7 @@ class LogParserBase():
         self.filename = None
         self.fileline = None
         self.classname = None
-
+        self.thread_time_delay = None
 
     @staticmethod
     def get_filename_and_line():
@@ -157,6 +159,24 @@ class LogParserBase():
         return log_parser
 
 
+def calc_time_diff(line1,line2):
+    year = arrow.now().datetime.year
+    date_str = str(year) + "-" + line1.date
+    date_str = date_str + " " + line1.time
+    t1 = arrow.get(date_str,"YYYY-MM-DD HH:mm:ss.SSS")
+
+    date_str = str(year) + "-" + line2.date
+    date_str = date_str + " " + line2.time
+    t2 = arrow.get(date_str, "YYYY-MM-DD HH:mm:ss.SSS")
+
+    time_diff = (t1-t2).microseconds/1000
+
+    if time_diff > 100:
+        pass
+
+    return time_diff
+
+
 def parse_file(fname=None):
 
     if not fname:
@@ -172,7 +192,13 @@ def parse_file(fname=None):
         if not log_parser:
             continue
         log_all_list.append(log_parser)
+        key = log_parser.pid + "-" + log_parser.tid
+        if(LogParserBase.last_thread_record.has_key(key)):
+            log_parser.thread_time_delay = calc_time_diff(log_parser, LogParserBase.last_thread_record[key])
+        else:
+            log_parser.thread_time_delay = 0
 
+        LogParserBase.last_thread_record[key] = log_parser
 
     print "process finished."
 

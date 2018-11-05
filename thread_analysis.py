@@ -10,7 +10,7 @@ from abc import ABCMeta, abstractmethod
 
 
 
-LOGCAT_DEFAULT_PATH = "/Users/simon/work/svn/dev_oc/engineering/projects/oc_client/dev/adclear_4_0/logcat.log"
+LOGCAT_DEFAULT_PATH = "/Users/simon/Downloads/Logcat_d5c50fd4106d8d14_2018-10-31-00.00.00_2018-11-01-00.00.00-r-00000"
 
 log_all_list = []
 log_thread_dic = {}
@@ -26,8 +26,64 @@ class LogParserBase():
         self.is_java = False
         self.orig_line = None
         self.csm = None
+        self.date = None
+        self.time = None
+        self.pid = None
+        self.tid = None
+        self.log = None
+        self.filename = None
+        self.fileline = None
+        self.classname = None
 
 
+    @staticmethod
+    def get_filename_and_line():
+        pass
+
+
+    @staticmethod
+    def parse_format_2(self):
+        reg_str = r"^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+\S+\s+(\S+):\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+(.*)"
+        matchObj = re.search(reg_str, self.orig_line)
+        lable = None
+        if matchObj:
+            self.date = matchObj.group(1)
+            self.time = matchObj.group(2)
+            self.pid = matchObj.group(3)
+            self.tid = matchObj.group(4)
+            lable = matchObj.group(5)
+            self.log = matchObj.group(6)
+        else:
+            return False
+
+        if not self.pid.isdigit():
+            return False
+
+        if not self.tid.isdigit():
+            return False
+
+        if not self.is_java:
+            reg_str = "^\[(\S+):(\d+)\]\s+\((\S+)\)\s+\-\s+(.*)"
+            matchObj = re.search(reg_str, self.log)
+            if matchObj:
+                self.filename = matchObj.group(1)
+                self.fileline = matchObj.group(2)
+                self.log = matchObj.group(4)
+            else:
+                return False
+
+        if self.is_java:
+            reg_str = "^\[\S*\](\S+)"
+            matchObj = re.search(reg_str, self.log)
+            if matchObj:
+                self.classname = matchObj.group(1)
+            else:
+                return False
+
+
+        return True
+
+        pass
 
     @staticmethod
     def parse_format_1(self):
@@ -89,6 +145,8 @@ class LogParserBase():
         if not LogParserBase.parer_function:
             if LogParserBase.parse_format_1(log_parser):
                 LogParserBase.parer_function = LogParserBase.parse_format_1
+            elif LogParserBase.parse_format_2(log_parser):
+                LogParserBase.parer_function = LogParserBase.parse_format_2
         else:
             ret = LogParserBase.parer_function(log_parser)
             if not ret:
@@ -114,8 +172,6 @@ def parse_file(fname=None):
         if not log_parser:
             continue
         log_all_list.append(log_parser)
-        key = log_parser.pid + '-' + log_parser.tid
-        log_thread_dic[key] = log_parser
 
 
     print "process finished."

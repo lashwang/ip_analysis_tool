@@ -10,7 +10,7 @@ import arrow
 
 
 
-LOGCAT_DEFAULT_PATH = "/Users/simon/Downloads/Logcat_d5c50fd4106d8d14_2018-10-31-00.00.00_2018-11-01-00.00.00-r-00000"
+LOGCAT_DEFAULT_PATH = "/Users/simon/work/svn/dev_oc/adclear_4_0/logcat.log"
 
 log_all_list = []
 
@@ -38,7 +38,7 @@ class Parser():
         self.fileline = None
         self.classname = None
         self.thread_time_delay = None
-
+        self.label = None
     @staticmethod
     def get_filename_and_line():
         pass
@@ -48,13 +48,12 @@ class Parser():
     def parse_format_2(self):
         reg_str = r"^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+\S+\s+(\S+):\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+(.*)"
         matchObj = re.search(reg_str, self.orig_line)
-        lable = None
         if matchObj:
             self.date = matchObj.group(1)
             self.time = matchObj.group(2)
             self.pid = matchObj.group(3)
             self.tid = matchObj.group(4)
-            lable = matchObj.group(5)
+            self.lable = matchObj.group(5)
             self.log = matchObj.group(6)
         else:
             return False
@@ -77,7 +76,7 @@ class Parser():
 
         if self.is_java:
             reg_str = "^\[\S*\](\S+)"
-            matchObj = re.search(reg_str, self.log)
+            matchObj = re.search(reg_str, self.lable)
             if matchObj:
                 self.classname = matchObj.group(1)
             else:
@@ -90,11 +89,12 @@ class Parser():
 
     @staticmethod
     def parse_format_1(self):
-        reg_str = r"^\S+\((\S+)\):\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+\[\S+\]\s+(.*)"
+        reg_str = r"^(\S+)\((.+)\):\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+\[\S+\]\s+(.*)"
         matchObj = re.search(reg_str, self.orig_line)
         if matchObj:
-            self.pid = matchObj.group(1)
-            self.tid = matchObj.group(5)
+            self.label = matchObj.group(1).strip()
+            self.pid = matchObj.group(2).strip()
+            self.tid = matchObj.group(6).strip()
         else:
             return False
 
@@ -104,9 +104,9 @@ class Parser():
         if not self.tid.isdigit():
             return False
 
-        self.date = matchObj.group(2)
-        self.time = matchObj.group(3)
-        self.log = matchObj.group(6)
+        self.date = matchObj.group(3)
+        self.time = matchObj.group(4)
+        self.log = matchObj.group(7)
 
         if not self.is_java:
             reg_str = "^\[(\S+):(\d+)\]\s+\((\S+)\)\s+\-\s+(.*)"
@@ -124,6 +124,14 @@ class Parser():
             self.csm = matchObj.group(2)
         else:
             self.csm = None
+
+        if self.is_java:
+            reg_str = r"\[JAVA\](\S+)"
+            matchObj = re.search(reg_str, self.label)
+            if matchObj:
+                self.classname = matchObj.group(1)
+            pass
+
 
         return True
 
@@ -150,6 +158,9 @@ class Parser():
                 Parser.parer_function = Parser.parse_format_1
             elif Parser.parse_format_2(log_parser):
                 Parser.parer_function = Parser.parse_format_2
+            else:
+                print "Unsupported parser."
+                exit(1)
         else:
             ret = Parser.parer_function(log_parser)
             if not ret:
@@ -160,17 +171,29 @@ class Parser():
         return log_parser
 
     def to_ws_string(self):
-        return [self.date,
-                self.time,
-                self.pid,
-                self.tid,
-                self.csm,
-                self.thread_time_delay,
-                str(self.filename) + ":" + str(self.fileline),
-                self.log]
+        if not self.is_java:
+            return [self.date,
+                    self.time,
+                    self.pid,
+                    self.tid,
+                    self.thread_time_delay,
+                    str(self.filename) + ":" + str(self.fileline),
+                    self.is_java,
+                    self.csm,
+                    self.log]
+        else:
+            return [self.date,
+                    self.time,
+                    self.pid,
+                    self.tid,
+                    self.thread_time_delay,
+                    self.classname,
+                    self.is_java,
+                    self.csm,
+                    self.log]
     @staticmethod
     def to_ws_string_header():
-        return "date,time,pid,tid,csm,thread_delay,fileline,log".split(",")
+        return "date,time,pid,tid,thread_delay,fileline,is_java,csm,log".split(",")
 
 def calc_time_diff(line1,line2):
     year = arrow.now().datetime.year

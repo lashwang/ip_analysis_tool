@@ -187,6 +187,8 @@ def calc_time_diff(line1,line2):
 
     time_diff = time_delta.total_seconds()*1000
 
+    if time_diff < 0:
+        time_diff = 0
 
     return time_diff
 

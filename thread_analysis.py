@@ -7,7 +7,8 @@ from openpyxl.compat import range
 from openpyxl.utils import get_column_letter
 from abc import ABCMeta, abstractmethod
 import arrow
-
+import easygui
+import Tkinter, tkFileDialog
 
 
 LOGCAT_DEFAULT_PATH = "/Users/simon/work/svn/dev_oc/adclear_4_0/logcat.log"
@@ -219,7 +220,12 @@ def calc_time_diff(line1,line2):
 def parse_file(fname=None):
 
     if not fname:
-        fname = LOGCAT_DEFAULT_PATH
+        root = Tkinter.Tk()
+        fname = tkFileDialog.askopenfilename()
+        if not fname:
+            exit(0)
+        root.withdraw()
+
 
     output_filename = fname + ".xlsx"
 

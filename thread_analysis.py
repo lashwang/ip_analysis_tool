@@ -178,7 +178,8 @@ class Parser():
                     self.pid,
                     self.tid,
                     self.thread_time_delay,
-                    str(self.filename) + ":" + str(self.fileline),
+                    str(self.filename),
+                    str(self.fileline),
                     self.is_java,
                     self.csm,
                     self.log]
@@ -189,12 +190,13 @@ class Parser():
                     self.tid,
                     self.thread_time_delay,
                     self.classname,
+                    0,
                     self.is_java,
                     self.csm,
                     self.log]
     @staticmethod
     def to_ws_string_header():
-        return "date,time,pid,tid,thread_delay,fileline,is_java,csm,log".split(",")
+        return "date,time,pid,tid,thread_delay,file,line,is_java,csm,log".split(",")
 
 def calc_time_diff(line1,line2):
     year = arrow.now().datetime.year

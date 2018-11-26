@@ -23,7 +23,7 @@ class Parser():
     __metaclass__ = ABCMeta
     parer_function = None
     last_thread_record = {}
-
+    retry_number = 0
 
 
     def __init__(self):
@@ -40,6 +40,7 @@ class Parser():
         self.classname = None
         self.thread_time_delay = None
         self.label = None
+
     @staticmethod
     def get_filename_and_line():
         pass
@@ -161,7 +162,11 @@ class Parser():
                 Parser.parer_function = Parser.parse_format_2
             else:
                 print "Unsupported parser."
-                exit(1)
+                Parser.retry_number = Parser.retry_number + 1
+                if(Parser.retry_number >= 20):
+                    exit(1)
+                else:
+                    return None
         else:
             ret = Parser.parer_function(log_parser)
             if not ret:
@@ -179,7 +184,7 @@ class Parser():
                     self.tid,
                     self.thread_time_delay,
                     str(self.filename),
-                    str(self.fileline),
+                    int(self.fileline),
                     self.is_java,
                     self.csm,
                     self.log]
@@ -247,8 +252,10 @@ def parse_file(fname=None):
             log_parser.thread_time_delay = 0
 
         Parser.last_thread_record[key] = log_parser
-
-        ws_all.append(log_parser.to_ws_string())
+        try:
+            ws_all.append(log_parser.to_ws_string())
+        except Exception,e:
+            print "error found when add to excel:" + line
 
     wb.save(filename=output_filename)
 

@@ -6,6 +6,12 @@
 import fire
 from subprocess import call
 import re
+import os
+import commands
+
+
+
+
 
 port_query_reg_str = r"CSM\s+\[{}\].*client_src_port\s+(\d+),\s+csp_src_port\s+(\d+)"
 
@@ -25,10 +31,36 @@ class QueryCmd():
                 if matchObj:
                     local_port = matchObj.group(1)
                     remote_port = matchObj.group(2)
-                    print "query result for [{}]:tcp.port eq {} and tcp.port eq {}".format(csm_id,local_port,remote_port)
+                    print "query result for [{}]:tcp.port eq {} or tcp.port eq {}".format(csm_id,local_port,remote_port)
                     return
 
         pass
+
+    def get_tcpdump(self):
+        cmd = 'adb shell su -c "cp /data/data/com.seven.adclear/files/openchannel/ssl_dump.log /sdcard/trace/."'
+        os.system(cmd)
+        cmd = 'adb pull /sdcard/trace .'
+        os.system(cmd)
+
+        pass
+
+    def stop_tcpdump(self):
+        cmd = "adb shell ps"
+        results = commands.getoutput(cmd).splitlines()
+        for line in results[1:]:
+            if "mightydumpty" in line:
+                pid = line.split()[1]
+                cmd = 'adb shell su -c "kill -9 {}"'.format(pid)
+                print "killing..{}".format(line)
+                os.system(cmd)
+
+        cmd = "adb shell rm -rf /sdcard/trace/ "
+        os.system(cmd)
+
+    def query_crash(self,addr):
+        cmd = "addr2line_android -p -C -i -f -e proxy/build/intermediates/ndkBuild/debug/obj/local/armeabi/libproxy.so {}".format(addr)
+        results = commands.getoutput(cmd)
+        print results
 
 
 def main():

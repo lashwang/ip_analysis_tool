@@ -37,6 +37,8 @@ class QueryCmd():
         pass
 
     def get_tcpdump(self):
+        cmd = "rm -rf trace/ "
+        os.system(cmd)
         cmd = 'adb shell su -c "cp /data/data/com.seven.adclear/files/openchannel/ssl_dump.log /sdcard/trace/."'
         os.system(cmd)
         cmd = 'adb pull /sdcard/trace .'
@@ -56,11 +58,35 @@ class QueryCmd():
 
         cmd = "adb shell rm -rf /sdcard/trace/ "
         os.system(cmd)
+        cmd = "adb shell mkdir /sdcard/trace/ "
+        os.system(cmd)
+
+    def stop_adclear(self):
+        cmd = "adb shell ps"
+        results = commands.getoutput(cmd).splitlines()
+        for line in results[1:]:
+            if "adclear" in line:
+                pid = line.split()[1]
+                cmd = 'adb shell su -c "kill -9 {}"'.format(pid)
+                print "killing..{}".format(line)
+                os.system(cmd)
+
+
+
 
     def query_crash(self,addr):
         cmd = "addr2line_android -p -C -i -f -e proxy/build/intermediates/ndkBuild/debug/obj/local/armeabi/libproxy.so {}".format(addr)
         results = commands.getoutput(cmd)
         print results
+
+    def clear_logcat(self):
+        cmd = "adb logcat -c"
+        for num in range(0,5):
+            os.system(cmd)
+    def build_adclear(self):
+        cmd = "./gradlew assembleAdclearInternalDebug"
+        os.system(cmd)
+
 
 
 def main():

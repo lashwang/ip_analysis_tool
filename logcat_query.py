@@ -85,12 +85,12 @@ class QueryCmd():
             os.system(cmd)
 
     def build_adclear(self):
+        cmd = "rm -rf {}/*.apk".format(adclear_apk_path)
+        os.system(cmd)
         cmd = "./gradlew assembleAdclearInternalDebug"
         os.system(cmd)
 
     def recreate_adclear(self):
-        cmd = "rm -rf {}/*.apk".format(adclear_apk_path)
-        os.system(cmd)
         self.build_adclear()
         self.install_adclear()
         self.clear_logcat()

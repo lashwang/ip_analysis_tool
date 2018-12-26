@@ -8,13 +8,13 @@ from subprocess import call
 import re
 import os
 import commands
-
+import glob
 
 
 
 
 port_query_reg_str = r"CSM\s+\[{}\].*client_src_port\s+(\d+),\s+csp_src_port\s+(\d+)"
-
+adclear_apk_path = "adclear/build/outputs/apk/adclearInternal/debug"
 
 class QueryCmd():
     def get_port(self,logcat_path,csm_id):
@@ -83,11 +83,28 @@ class QueryCmd():
         cmd = "adb logcat -c"
         for num in range(0,5):
             os.system(cmd)
+
     def build_adclear(self):
         cmd = "./gradlew assembleAdclearInternalDebug"
         os.system(cmd)
 
+    def recreate_adclear(self):
+        cmd = "rm -rf {}/*.apk".format(adclear_apk_path)
+        os.system(cmd)
+        self.build_adclear()
+        self.install_adclear()
+        self.clear_logcat()
 
+
+    def install_adclear(self):
+        apk_list = glob.glob("{}/*.apk".format(adclear_apk_path))
+
+        if apk_list is None or len(apk_list) == 0:
+            print "no apk found"
+            exit(0)
+
+        cmd = "adb install -r {}".format(apk_list[0])
+        os.system(cmd)
 
 def main():
     fire.Fire(QueryCmd)

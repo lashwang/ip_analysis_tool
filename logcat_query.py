@@ -19,7 +19,7 @@ adclear_apk_path = "adclear/build/outputs/apk/adclearInternal/debug"
 class QueryCmd():
     def get_port(self,logcat_path,csm_id):
         print "get_port,csm_id=" + csm_id
-        with open(logcat_path, "r") as ins:
+        with open(str(logcat_path), "r") as ins:
             for line in ins:
                 if csm_id not in line:
                     continue
@@ -41,7 +41,7 @@ class QueryCmd():
         os.system(cmd)
         cmd = 'adb shell su -c "cp /data/data/com.seven.adclear/files/openchannel/ssl_dump.log /sdcard/trace/."'
         os.system(cmd)
-        cmd = 'adb pull /sdcard/trace .'
+        cmd = 'adb pull -a /sdcard/trace .'
         os.system(cmd)
 
         pass
@@ -104,6 +104,13 @@ class QueryCmd():
             exit(0)
 
         cmd = "adb install -r {}".format(apk_list[0])
+        os.system(cmd)
+
+
+    def get_tombstone(self):
+        cmd = 'adb shell su -c "cp -pFR /data/tombstones/ /sdcard/."'
+        os.system(cmd)
+        cmd = 'adb pull -a /sdcard/tombstones/ .'
         os.system(cmd)
 
 def main():

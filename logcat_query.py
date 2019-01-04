@@ -14,7 +14,7 @@ import glob
 
 
 port_query_reg_str = r"CSM\s+\[{}\].*client_src_port\s+(\d+),\s+csp_src_port\s+(\d+)"
-adclear_apk_path = "adclear/build/outputs/apk/adclearInternal/debug"
+adclear_apk_path = "adclear/build/outputs/apk/adclearInternalDev/debug"
 
 
 
@@ -86,7 +86,7 @@ def find_body_hack_type(line,saved_tables):
 
 
 class QueryCmd():
-    def get_port(self,logcat_path,csm_id):
+    def get_port(self,csm_id,logcat_path="logcat.log"):
         print "get_port,csm_id=" + str(csm_id)
         with open(str(logcat_path), "r") as ins:
             for line in ins:
@@ -106,7 +106,10 @@ class QueryCmd():
                 find_elem_hide_url(line,elmhide_url_table)
                 find_body_hack_type(line,hack_type_table)
         for key,value in hosts_table.iteritems():
-            print "{} -> {}:{}".format(key,value,hack_type_table.get(key,0))
+            hack_type = hack_type_table.get(key,0)
+            url = elmhide_url_table.get(key,"")
+            if hack_type > 0:
+                print "{} -> host:{},hack_type:{},url:{}".format(key,value,hack_type,url)
 
 
     def get_tcpdump(self):
@@ -160,13 +163,15 @@ class QueryCmd():
     def build_adclear(self):
         cmd = "rm -rf {}/*.apk".format(adclear_apk_path)
         os.system(cmd)
-        cmd = "./gradlew assembleAdclearInternalDebug"
+        cmd = "./gradlew assembleAdclearInternalDev"
         os.system(cmd)
 
-    def recreate_adclear(self):
+    def recreate_adclear(self,stop_tcpdump=False):
         self.build_adclear()
         self.install_adclear()
         self.clear_logcat()
+        if(stop_tcpdump):
+            self.stop_tcpdump()
 
 
     def install_adclear(self):

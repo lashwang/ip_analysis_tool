@@ -11,10 +11,10 @@ import commands
 import glob
 
 
-
+default_flavor = "adclearInternalDev"
 
 port_query_reg_str = r"CSM\s+\[{}\].*client_src_port\s+(\d+),\s+csp_src_port\s+(\d+)"
-adclear_apk_path = "adclear/build/outputs/apk/adclearInternalDev/debug"
+adclear_apk_path = "adclear/build/outputs/apk/{}/debug".format(default_flavor)
 
 
 
@@ -163,8 +163,16 @@ class QueryCmd():
     def build_adclear(self):
         cmd = "rm -rf {}/*.apk".format(adclear_apk_path)
         os.system(cmd)
-        cmd = "./gradlew assembleAdclearInternalDev"
+        cmd = "./gradlew assemble{}".format(default_flavor)
         os.system(cmd)
+
+    def build_adclear_clean(self):
+        cmd = "rm -rf {}/*.apk".format(adclear_apk_path)
+        os.system(cmd)
+        cmd = "./gradlew clean assemble{}".format(default_flavor)
+        os.system(cmd)
+
+
 
     def recreate_adclear(self,stop_tcpdump=False):
         self.build_adclear()

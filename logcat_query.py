@@ -9,6 +9,8 @@ import re
 import os
 import commands
 import glob
+import platform
+
 
 
 default_flavor = "adclearInternalDev"
@@ -17,6 +19,10 @@ port_query_reg_str = r"CSM\s+\[{}\].*client_src_port\s+(\d+),\s+csp_src_port\s+(
 adclear_apk_path = "adclear/build/outputs/apk/{}/debug".format(default_flavor)
 
 
+build_cmd = "gradlew"
+
+if "cygwin" in platform.system():
+    build_cmd = "gradlew.bat"
 
 
 def find_port_info_from_netlog(line,csm_id):
@@ -163,6 +169,7 @@ class QueryCmd():
     def build_adclear(self):
         cmd = "rm -rf {}/*.apk".format(adclear_apk_path)
         os.system(cmd)
+        cmd = "./{} assembleAdclearInternalDev".format(build_cmd)
         cmd = "./gradlew assemble{}".format(default_flavor)
         os.system(cmd)
 

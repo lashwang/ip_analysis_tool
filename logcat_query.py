@@ -10,7 +10,7 @@ import os
 import commands
 import glob
 import platform
-
+import sys
 
 
 default_flavor = "adclearInternalDev"
@@ -157,7 +157,8 @@ class QueryCmd():
 
 
     def query_crash(self,addr):
-        cmd = "addr2line_android -p -C -i -f -e proxy/build/intermediates/ndkBuild/debug/obj/local/armeabi/libproxy.so {}".format(addr)
+        cmd = "addr2line_android -p -C -i -f -e proxy/build/intermediates/ndkBuild/debug/obj/local/armeabi/libproxy.so {}".format(sys.argv[2])
+        print cmd
         results = commands.getoutput(cmd)
         print results
 
@@ -169,8 +170,7 @@ class QueryCmd():
     def build_adclear(self):
         cmd = "rm -rf {}/*.apk".format(adclear_apk_path)
         os.system(cmd)
-        cmd = "./{} assembleAdclearInternalDev".format(build_cmd)
-        cmd = "./gradlew assemble{}".format(default_flavor)
+        cmd = "./{} assemble{}".format(build_cmd,default_flavor)
         os.system(cmd)
 
     def build_adclear_clean(self):

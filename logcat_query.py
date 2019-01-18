@@ -204,6 +204,19 @@ class QueryCmd():
         cmd = 'adb pull -a /sdcard/tombstones/ .'
         os.system(cmd)
 
+    def obj_dump(self,path):
+        base = os.path.basename(path)
+        name = os.path.splitext(base)[0]
+        cmd = "find proxy/build/intermediates/ndkBuild/debug/obj/local/armeabi/objs-debug/proxy/ -name {}.o".format(name)
+        print cmd
+        results = commands.getoutput(cmd).splitlines()
+        print results
+        for file in results:
+            cmd = "android-objdump -d -S {}".format(file)
+            results = commands.getoutput(cmd)
+            print results
+
+
 def main():
     fire.Fire(QueryCmd)
     pass

@@ -89,7 +89,12 @@ def find_body_hack_type(line,saved_tables):
 
         saved_tables[csm_id] = int(hack_type)
 
+def get_build_args(args):
+    params = ""
+    for arg in args:
+        params += " " + str(arg)
 
+    return params
 
 class QueryCmd():
     def get_port(self,csm_id,logcat_path="logcat.log"):
@@ -167,19 +172,13 @@ class QueryCmd():
         for num in range(0,5):
             os.system(cmd)
 
-    def build_adclear(self):
+    def build_adclear(self,*args):
+        build_args = get_build_args(args)
         cmd = "rm -rf {}/*.apk".format(adclear_apk_path)
         os.system(cmd)
-        cmd = "./{} assemble{}".format(build_cmd,default_flavor)
+        cmd = "./{} assemble{} {}".format(build_cmd,default_flavor,build_args)
+        print cmd
         os.system(cmd)
-
-    def build_adclear_clean(self):
-        cmd = "rm -rf {}/*.apk".format(adclear_apk_path)
-        os.system(cmd)
-        cmd = "./gradlew clean assemble{}".format(default_flavor)
-        os.system(cmd)
-
-
 
     def recreate_adclear(self,stop_tcpdump=False):
         self.build_adclear()

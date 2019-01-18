@@ -194,6 +194,7 @@ class QueryCmd():
             exit(0)
 
         cmd = "adb install -r {}".format(apk_list[0])
+        print cmd
         os.system(cmd)
 
 

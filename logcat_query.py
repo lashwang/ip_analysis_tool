@@ -216,8 +216,7 @@ class QueryCmd():
             cmd = "android-objdump -d -S {}".format(file)
             output_name = "{}.o.{}.txt".format(name,index)
             results = commands.getoutput(cmd)
-            index = index + 1
-
+            index = index
             with open(output_name, 'a') as the_file:
                 the_file.write(results)
 

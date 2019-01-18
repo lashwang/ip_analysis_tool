@@ -180,12 +180,10 @@ class QueryCmd():
         print cmd
         os.system(cmd)
 
-    def recreate_adclear(self,stop_tcpdump=False):
-        self.build_adclear()
+    def recreate_adclear(self,*args):
+        self.build_adclear(args)
         self.install_adclear()
         self.clear_logcat()
-        if(stop_tcpdump):
-            self.stop_tcpdump()
 
 
     def install_adclear(self):

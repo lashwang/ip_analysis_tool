@@ -181,7 +181,7 @@ class QueryCmd():
         os.system(cmd)
 
     def recreate_adclear(self,*args):
-        self.build_adclear(args)
+        self.build_adclear(*args)
         self.install_adclear()
         self.clear_logcat()
 

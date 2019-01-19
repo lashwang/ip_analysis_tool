@@ -213,10 +213,10 @@ class QueryCmd():
         print results
         index = 1
         for file in results:
-            cmd = "android-objdump -d -S {}".format(file)
+            cmd = "android-objdump -d -l -S -C {}".format(file)
             output_name = "{}.o.{}.txt".format(name,index)
             results = commands.getoutput(cmd)
-            index = index
+            index = index + 1
             with open(output_name, 'a') as the_file:
                 the_file.write(results)
 

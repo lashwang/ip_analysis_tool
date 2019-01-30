@@ -219,10 +219,47 @@ class QueryCmd():
             index = index + 1
             with open(output_name, 'a') as the_file:
                 the_file.write(results)
+
+
     def reset_bc_tool(self):
         cmd = "sudo rm -rf /Users/simon/Library/Application Support/Beyond Compare/registry.dat"
         os.system(cmd)
 
+    def parse_ssl_compare_log(self,path = "logcat.log"):
+        bc_keypair_time_list = []
+        openssl_keypair_time_list = []
+        bc_cert_gen_time_list = []
+        openssl_cert_gen_time_list = []
+        with open(str(path), "r") as ins:
+            for line in ins:
+                reg_str = r"KeyPair time in BC:(\d+)"
+                matchObj = re.search(reg_str, line)
+                if matchObj:
+                    bc_keypair_time = int(matchObj.group(1))
+                    bc_keypair_time_list.append(bc_keypair_time)
+                    continue
+
+                reg_str = r"Diff from last:(\d+)"
+                matchObj = re.search(reg_str, line)
+                if matchObj:
+                    time = int(matchObj.group(1))
+
+                    if "https_task.cpp:507" in line:
+                        openssl_keypair_time_list.append(time)
+                        continue
+
+                    if "https_task.cpp:509" in line:
+                        openssl_cert_gen_time_list.append(time)
+                        continue
+
+                    if "https_task.cpp:528" in line:
+                        bc_cert_gen_time_list.append(time)
+                        continue
+
+        print "bc keypair time:",bc_keypair_time_list
+        print "openssl keypair time:",openssl_keypair_time_list
+        print "bc cert-gen time:",bc_cert_gen_time_list
+        print "openssl cert-gen time:",openssl_cert_gen_time_list
 
 def main():
     fire.Fire(QueryCmd)

@@ -219,6 +219,9 @@ class QueryCmd():
             index = index + 1
             with open(output_name, 'a') as the_file:
                 the_file.write(results)
+    def reset_bc_tool(self):
+        cmd = "sudo rm -rf /Users/simon/Library/Application Support/Beyond Compare/registry.dat"
+        os.system(cmd)
 
 
 def main():

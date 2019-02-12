@@ -261,6 +261,11 @@ class QueryCmd():
         print "bc cert-gen time:",bc_cert_gen_time_list
         print "openssl cert-gen time:",openssl_cert_gen_time_list
 
+
+    def load_der_cert(self,path = "adclear.crt"):
+        cmd = "openssl x509 -inform der -in {} -text".format(path)
+        os.system(cmd)
+
 def main():
     fire.Fire(QueryCmd)
     pass

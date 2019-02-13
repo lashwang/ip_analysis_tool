@@ -13,6 +13,9 @@ import ctypes
 import win32con
 import time
 import os
+import cv2
+import numpy as np
+
 
 MessageBox = ctypes.windll.user32.MessageBoxW
 # EnumWindows = ctypes.windll.user32.EnumWindows
@@ -91,11 +94,24 @@ def get_window_screenshot(hwnd):
 
 
 def press_ps4_as_forground():
-    # pos = pyautogui.locateCenterOnScreen(PS_IMG_SEARCH_PATH + 'ps_remote_logo.png')
-    # print(pos)
-    app = pywinauto.application.Application()
-    app.ProgramFiles.set_focus()
-    pyautogui.screenshot('source_screen.png')
+    # image = os.path.join(PS_IMG_SEARCH_PATH, 'ps_remote_logo.png')
+    pos = pyautogui.locateCenterOnScreen(PS_IMG_SEARCH_PATH + 'ps_remote_logo.png')
+    print(pos)
+    pyautogui.moveTo(pos.x,pos.y)
+    pyautogui.click()
+
+    # app = pywinauto.application.Application()
+    # app.ProgramFiles.set_focus()
+    # pyautogui.screenshot('source_screen.png')
+
+    # im = pyautogui.screenshot('my_screenshot.png')
+    # img_rgb = np.array(im)
+    # img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
+    # template = cv2.imread(image, 0)
+    # res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
+    # min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+    # print(min_val, max_val, min_loc, max_loc)
+    # exit(0)
 
 
 class CmdInterface():

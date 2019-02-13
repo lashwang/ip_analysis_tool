@@ -5,6 +5,7 @@
 
 import fire
 import pyautogui
+import pywinauto
 from pywinauto.application import Application
 import win32gui
 import win32ui
@@ -25,7 +26,7 @@ MessageBox = ctypes.windll.user32.MessageBoxW
 
 PS_REMOTE_WINDOW_TITLE = "PS4遥控操作"
 PS_MACRO_WINDOW_TITLE = "PS4 Macro"
-PS_IMG_SEARCH_PATH = "./pes2019_img_search"
+PS_IMG_SEARCH_PATH = "./pes2019_img_search/"
 
 
 all_window_titles = []
@@ -90,8 +91,12 @@ def get_window_screenshot(hwnd):
 
 
 def press_ps4_as_forground():
-    pos = pyautogui.locateCenterOnScreen(os.path.join(PS_IMG_SEARCH_PATH,'ps_remote_logo.png'),confidence=0.9)
-    print(pos)
+    # pos = pyautogui.locateCenterOnScreen(PS_IMG_SEARCH_PATH + 'ps_remote_logo.png')
+    # print(pos)
+    app = pywinauto.application.Application()
+    app.ProgramFiles.set_focus()
+    pyautogui.screenshot('source_screen.png')
+
 
 class CmdInterface():
     def get_screen(self):

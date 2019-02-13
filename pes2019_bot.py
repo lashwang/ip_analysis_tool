@@ -15,7 +15,7 @@ import time
 import os
 import cv2
 import numpy as np
-
+import traceback
 
 MessageBox = ctypes.windll.user32.MessageBoxW
 # EnumWindows = ctypes.windll.user32.EnumWindows
@@ -33,6 +33,18 @@ PS_IMG_SEARCH_PATH = "./pes2019_img_search/"
 
 
 all_window_titles = []
+image_search_dict = {}
+
+
+IMAGE_PS_ICON_ID = 1
+IMAGE_PS_ICON_NAME = "ps_remote_logo.png"
+
+
+image_search_dict[IMAGE_PS_ICON_ID] = IMAGE_PS_ICON_NAME
+
+
+
+
 
 
 
@@ -93,25 +105,25 @@ def get_window_screenshot(hwnd):
     win32gui.DeleteObject(dataBitMap.GetHandle())
 
 
+def get_img_recoure_path(img_id):
+    return os.path.join(PS_IMG_SEARCH_PATH,image_search_dict[img_id])
+
 def press_ps4_as_forground():
-    # image = os.path.join(PS_IMG_SEARCH_PATH, 'ps_remote_logo.png')
-    pos = pyautogui.locateCenterOnScreen(PS_IMG_SEARCH_PATH + 'ps_remote_logo.png')
-    print(pos)
-    pyautogui.moveTo(pos.x,pos.y)
-    pyautogui.click()
-
-    # app = pywinauto.application.Application()
-    # app.ProgramFiles.set_focus()
-    # pyautogui.screenshot('source_screen.png')
-
-    # im = pyautogui.screenshot('my_screenshot.png')
-    # img_rgb = np.array(im)
-    # img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
-    # template = cv2.imread(image, 0)
-    # res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
-    # min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-    # print(min_val, max_val, min_loc, max_loc)
-    # exit(0)
+    image = get_img_recoure_path(IMAGE_PS_ICON_ID)
+    try:
+        pos = pyautogui.locateCenterOnScreen(image)
+        print(pos)
+        pyautogui.moveTo(pos.x,pos.y)
+        pyautogui.click()
+    except Exception as ex:
+        print(ex)
+        im = pyautogui.screenshot('my_screenshot.png')
+        img_rgb = np.array(im)
+        img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
+        template = cv2.imread(image, 0)
+        res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+        print("find ps screen:",min_val, max_val, min_loc, max_loc)
 
 
 class CmdInterface():
@@ -152,15 +164,27 @@ class CmdInterface():
 
     def pes2019_bot_loop(self):
         while True:
-            text = win32gui.GetWindowText(win32gui.GetForegroundWindow())
-            print("get focus window:" + text)
-            if PS_REMOTE_WINDOW_TITLE not in text:
-                press_ps4_as_forground()
+            try:
+                ps4_hwnd = win32gui.GetForegroundWindow()
+                text = win32gui.GetWindowText(ps4_hwnd)
+                rect = win32gui.GetWindowRect(ps4_hwnd)
+                print("get focus window:" + text)
+                print("focus window area:" + str(rect))
+                if PS_REMOTE_WINDOW_TITLE not in text:
+                    press_ps4_as_forground()
+                    time.sleep(5)
+                    continue
+                screen_now = pyautogui.screenshot()
                 time.sleep(3)
-                continue
-            screen_now = pyautogui.screenshot()
+            except Exception as ex:
+                print(ex)
+                traceback.print_exc()
+                pyautogui.screenshot("process_error.png")
+                break
 
-            time.sleep(3)
+
+
+
 
 def main():
     fire.Fire(CmdInterface)

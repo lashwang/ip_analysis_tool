@@ -266,6 +266,19 @@ class QueryCmd():
         cmd = "openssl x509 -inform der -in {} -text".format(path)
         os.system(cmd)
 
+    def get_standby_bucket(self,package="gcm.play.android.samples.com.gcmquickstart"):
+        cmd = "adb shell am get-standby-bucket {}".format(package)
+        os.system(cmd)
+
+    def set_standby_bucket(self,package="gcm.play.android.samples.com.gcmquickstart"):
+        cmd = "adb shell am set-standby-bucket {} rare".format(package)
+        os.system(cmd)
+
+    def restart_boolloader(self):
+        cmd = "adb reboot bootloader"
+        os.system(cmd)
+
+
 def main():
     fire.Fire(QueryCmd)
     pass

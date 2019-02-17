@@ -2,3 +2,5 @@ fire
 PyGetWindow==0.0.1
 pyautogui
 pywinauto
+opencv-python
+numpy

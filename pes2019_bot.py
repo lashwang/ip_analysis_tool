@@ -7,6 +7,7 @@ import fire
 import pyautogui
 import pywinauto
 from pywinauto.application import Application
+#install win32gui manually from https://github.com/mhammond/pywin32/releases
 import win32gui
 import win32ui
 import ctypes
@@ -30,7 +31,7 @@ MessageBox = ctypes.windll.user32.MessageBoxW
 PS_REMOTE_WINDOW_TITLE = "PS4遥控操作"
 PS_MACRO_WINDOW_TITLE = "PS4 Macro"
 PS_IMG_SEARCH_PATH = "./pes2019_img_search/"
-
+PS_REMOTE_INSTALLED_PATH = 'C:\Program Files (x86)\Sony\PS4 Remote Play\RemotePlay.exe'
 
 all_window_titles = []
 image_search_dict = {}
@@ -182,7 +183,11 @@ class CmdInterface():
                 pyautogui.screenshot("process_error.png")
                 break
 
+    def open_game_window(self):
+        app = Application(backend="uia").start(PS_REMOTE_INSTALLED_PATH)
+        print(app)
 
+        pass
 
 
 

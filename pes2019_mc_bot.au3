@@ -1,16 +1,20 @@
+#AutoIt3Wrapper_UseX64=n ; In order for the x86 DLLs to work
 #include-once
 #include <Timers.au3>
 #include <ScreenCapture.au3>
 #include <GUIConstantsEx.au3>
+#include <ImageSearch.au3>
 #include "log4a.au3"
+#include "OpenCV-Match_UDF.au3"
 
 
-$remoteplay = "C:\Program Files (x86)\Sony\PS4 Remote Play\RemotePlay.exe"
-$rplay_class = "WindowsForms10.BUTTON.app.0.141b42a_r9_ad1"
-$btn_start = "开始"
-$win_title = "PS4遥控操作"
+Global $remoteplay = "C:\Program Files (x86)\Sony\PS4 Remote Play\RemotePlay.exe"
+Global $rplay_class = "WindowsForms10.BUTTON.app.0.141b42a_r9_ad1"
+Global $btn_start = "开始"
+Global $win_title = "PS4遥控操作"
 
-
+_OpenCV_Startup();loads opencv DLLs
+_OpenCV_EnableLogging(True,True,True) ;Logs matches, errors in a log file and autoit console output.
 _log4a_SetEnable()
 DirCreate(@MyDocumentsDir & "\test_folder\")
 Run($remoteplay)
@@ -44,8 +48,50 @@ WinActive($win_title)
 Sleep(1*1000)
 $hWnd = WinWaitActive($win_title,"",120)
 _log4a_Info("Start to play games")
-$hBitmap = _ScreenCapture_CaptureWnd("", $hWnd)
-_ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\"&@HOUR&@MIN&@SEC&"Image.jpg", $hBitmap)
+While 1
+   if not WinExists($win_title) Then
+	  _log4a_Info("The window is closed")
+	  ExitLoop
+   EndIf
+
+   $hBitmap = _ScreenCapture_CaptureWnd("", $hWnd)
+   _ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\"&@HOUR&@MIN&@SEC&"Image.jpg", $hBitmap)
+   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\pause_menu.png", 0.70)
+   If Not @error Then
+	  _log4a_Info("find use select menu")
+	  Send("{ESC}")
+	  Sleep(1*1000)
+	  ContinueLoop
+   EndIf
+
+   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\pause_menu_2.png", 0.70)
+   If Not @error Then
+	  _log4a_Info("find pause menu")
+	  Send("{ESC}")
+	  Sleep(1*1000)
+	  ContinueLoop
+   EndIf
+
+   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\match_end.png", 0.70)
+   If Not @error Then
+	  _log4a_Info("find match end stage")
+	  Send("{ENTER}")
+	  Sleep(1*1000)
+	  ContinueLoop
+   EndIf
+
+   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\match_end_continue.png", 0.70)
+   If Not @error Then
+	  _log4a_Info("find match end continue icon")
+	  Send("{ENTER}")
+	  Sleep(1*1000)
+	  ContinueLoop
+   EndIf
+
+   Sleep(2*1000)
+WEnd
+
+_OpenCV_Shutdown();Closes DLLs
 
 
 #comments-start

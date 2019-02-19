@@ -17,7 +17,39 @@ If $hWnd == 0 Then
  EndIf
 
 _log4a_Info("PS4 remote started.")
-Sleep(1)
-;
+Sleep(1*1000)
+; press start
 ControlClick($hWnd, "",$btn_start)
-Sleep(1)
+Sleep(20*1000)
+
+_log4a_Info("Start to play games")
+
+; press esc for 3 times
+_log4a_Info("Begin to send esc")
+For $i = 1 To 20
+   Send("{ESC}")
+   Sleep(1*1000)
+Next
+_log4a_Info("End to send esc")
+
+; press enter for 3 times
+_log4a_Info("Begin to send enter")
+For $i = 1 To 5
+   Send("{Enter}")
+   Sleep(1*1000)
+Next
+_log4a_Info("End to send enter")
+
+
+
+_log4a_Info("Begin to send esc")
+For $i = 1 To 40
+   Send("{ESC}")
+   Sleep(1*1000)
+Next
+_log4a_Info("End to send esc")
+
+
+
+
+

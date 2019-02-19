@@ -185,8 +185,14 @@ class CmdInterface():
 
     def open_game_window(self):
         app = Application(backend="uia").start(PS_REMOTE_INSTALLED_PATH)
-        print(app)
+        # print(app)
+        #app = Application().Start(cmd_line=u'"C:\\Program Files (x86)\\Sony\\PS4 Remote Play\\RemotePlay.exe" ')
+        windowsformswindowappbarad = app[u'PS4\u9065\u63a7\u64cd\u4f5c']
 
+        print(windowsformswindowappbarad)
+        # windowsformswindowappbarad.Wait('ready')
+        # windowsformsbuttonappbarad = windowsformswindowappbarad[u'\u5f00\u59cb']
+        # windowsformsbuttonappbarad.Click()
         pass
 
 

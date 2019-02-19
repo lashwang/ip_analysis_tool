@@ -10,7 +10,7 @@ $btn_start = "开始"
 
 _log4a_SetEnable()
 Run($remoteplay)
-Local $hWnd = WinWait("PS4遥控操作",$btn_start,20)
+Local $hWnd = WinWait("PS4遥控操作",$btn_start,120)
 If $hWnd == 0 Then
    _log4a_Info("Open PS4 remote timeout")
    Exit
@@ -34,7 +34,7 @@ _log4a_Info("End to send esc")
 
 ; press enter for 3 times
 _log4a_Info("Begin to send enter")
-For $i = 1 To 5
+For $i = 1 To 20
    Send("{Enter}")
    Sleep(1*1000)
 Next

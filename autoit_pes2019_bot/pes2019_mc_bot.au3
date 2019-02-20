@@ -111,7 +111,7 @@ Func CheckGameState($pic_name,$hBitmap,$Threshold)
         _log4a_Info("match success for "&$pic_name)
         return $STATE_CHECK_MATCHED
     else
-        _log4a_Info("match faied for "&$pic_name)
+        ;_log4a_Info("match faied for "&$pic_name)
         return $STATE_CHECK_NOT_MATCHED
     EndIf
 EndFunc
@@ -122,6 +122,8 @@ Func DoKeyPress($arry_index)
         case 0
             SendEnter()
         case 1
+            SendESC()
+            SendESC()
             SendESC()
         case 2
             SendESC()

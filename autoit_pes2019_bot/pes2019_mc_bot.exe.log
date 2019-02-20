@@ -184,3 +184,25 @@
 02\20\2019 01:11:39 Info Find Viewpanel!!!
 02\20\2019 01:11:43 Info Start to play games
 02\20\2019 01:13:11 Info The window is closed
+02\20\2019 10:26:53 Info PS4 remote started.
+02\20\2019 10:27:01 Info Find Viewpanel!!!
+02\20\2019 10:27:04 Info Start to play games
+02\20\2019 10:27:06 Info match faied for start_game.png
+02\20\2019 10:27:07 Info match success for user_select_menu.png
+02\20\2019 10:27:07 Info sending {ESC}
+02\20\2019 10:27:11 Info match faied for start_game.png
+02\20\2019 10:27:13 Info match faied for user_select_menu.png
+02\20\2019 10:27:14 Info match success for pause_menu.png
+02\20\2019 10:27:14 Info sending {ESC}
+02\20\2019 10:27:18 Info match faied for start_game.png
+02\20\2019 10:27:20 Info match faied for user_select_menu.png
+02\20\2019 10:27:21 Info match success for pause_menu.png
+02\20\2019 10:27:21 Info sending {ESC}
+02\20\2019 10:27:25 Info match faied for start_game.png
+02\20\2019 10:27:27 Info match faied for user_select_menu.png
+02\20\2019 10:27:28 Info match success for pause_menu.png
+02\20\2019 10:27:28 Info sending {ESC}
+02\20\2019 10:27:32 Info match faied for start_game.png
+02\20\2019 10:27:34 Info match faied for user_select_menu.png
+02\20\2019 10:27:35 Info match success for pause_menu.png
+02\20\2019 10:27:35 Info sending {ESC}

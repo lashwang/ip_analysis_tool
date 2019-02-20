@@ -24,7 +24,7 @@ Global $STATE_CHECK_WIN_CLOSED = 1
 Global $STATE_CHECK_MATCHED = 2
 Global $STATE_CHECK_NOT_MATCHED = 3
 Global $game_window_started = False
-
+Global $match_end_processing = False
 
 _log4a_SetEnable()
 
@@ -56,7 +56,8 @@ Sleep(1*1000)
 
 AdlibRegister("ProcessCheck",1*1000)
 AdlibRegister("onViewPanelCheck",5*1000)
-AdlibRegister("screen_capture",90*1000)
+AdlibRegister("screen_capture",30*1000)
+AdlibRegister("processMatchEnd",1*1000)
 
 
 
@@ -73,13 +74,37 @@ _log4a_Info("Start to play games")
 
 Local $Threshold = 0.7
 Global $game_pic_array[0]
-_ArrayAdd($game_pic_array, "start_game.png")
-_ArrayAdd($game_pic_array, "user_select_menu.png")
-_ArrayAdd($game_pic_array, "pause_menu.png")
-_ArrayAdd($game_pic_array, "match_end.png")
-_ArrayAdd($game_pic_array, "match_end_continue.png")
+_ArrayAdd($game_pic_array, "start_game.png") 			;0
+_ArrayAdd($game_pic_array, "user_select_menu.png")		;1
+_ArrayAdd($game_pic_array, "half_time.png")				;2
+_ArrayAdd($game_pic_array, "pause_menu.png")			;3
+_ArrayAdd($game_pic_array, "match_end.png")				;4
+_ArrayAdd($game_pic_array, "team_manager.png")			;5
 
+Func DoKeyPress($arry_index)
+    Switch $arry_index
+         case 0 ;start game window
+            SendEnter()
+            SendEnter()
+            SendEnter()
+         case 1 ;手柄选择界面
+            SendESC()
+            SendESC()
+            SendESC()
+	     case 2 ;中场休息
+			SendEnter()
+            SendEnter()
+         case 3 ;暂停界面
+            SendESC()
+         case 4 ;比赛结束界面
+            SendEnter()
+            $match_end_processing = True
+		 case 5 ;小队管理
+            AdlibUnRegister("processMatchEnd")
+            $match_end_processing = False
+    EndSwitch
 
+EndFunc
 
 While(1)
     Local $hBitmap = _ScreenCapture_CaptureWnd("", $hWnd)
@@ -132,35 +157,19 @@ Func CheckGameState($pic_name,$hBitmap,$Threshold)
 EndFunc
 
 
-Func DoKeyPress($arry_index)
-    Switch $arry_index
-        case 0
-            SendEnter()
-        case 1
-            SendESC()
-            SendESC()
-            SendESC()
-        case 2
-            SendESC()
-        case 3
-            SendEnter()
-        case 4
-            SendEnter()
-    EndSwitch
 
-EndFunc
 
 
 Func SendEnter()
     Send("{ENTER}")
-    WinWait($win_title, "", 10)
+    WinWait($win_title, "", 100)
     _log4a_Info("sending {ENTER}")
 EndFunc
 
 
 Func SendESC()
     Send("{ESC}")
-    WinWait($win_title, "", 10)
+    WinWait($win_title, "", 100)
     _log4a_Info("sending {ESC}")
 EndFunc
 
@@ -170,6 +179,7 @@ Func ProcessCheck()
 		_log4a_Info("Process exited,stop!!!!")
 		exit 0
 	endif
+    checkInvalidWindow()
 EndFunc
 
 
@@ -188,7 +198,7 @@ EndFunc
 
 Func screen_capture()
 	Local $hBitmap = _ScreenCapture_CaptureWnd("", $hWnd)
-	_ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\image_"&@HOUR&"_"&@MIN&".jpg", $hBitmap)
+	_ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\image_"&@HOUR&"_"&@MIN&".bmp", $hBitmap)
 	_WinAPI_DeleteObject($hBitmap)
 EndFunc
 
@@ -218,4 +228,21 @@ Func send_email()
     EndIf
 
 EndFunc   ;==>_Example
+
+Func checkInvalidWindow()
+    Local $tv_title = "发起会话"
+    Local $tv_btn = "确定"
+    Local $tv_Wnd = WinActive($tv_title,$tv_btn)
+    If $tv_Wnd Then
+	  _log4a_Info("Find team view window")
+      ControlClick($tv_Wnd, "",$tv_btn)
+      return
+    EndIf
+EndFunc
+
+Func processMatchEnd()
+    if $match_end_processing then
+        SendEnter()
+    endif
+EndFunc
 

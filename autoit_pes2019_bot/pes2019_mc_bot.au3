@@ -6,15 +6,22 @@
 #include <ImageSearch.au3>
 #include "log4a.au3"
 #include "OpenCV-Match_UDF.au3"
+#include <Array.au3>
+#include <StringConstants.au3>
 
 
 Global $remoteplay = "C:\Program Files (x86)\Sony\PS4 Remote Play\RemotePlay.exe"
 Global $rplay_class = "WindowsForms10.BUTTON.app.0.141b42a_r9_ad1"
 Global $btn_start = "开始"
 Global $win_title = "PS4遥控操作"
+Global $game_window_check_time = 2*1000
+Global $STATE_CHECK_WIN_CLOSED = 1
+Global $STATE_CHECK_MATCHED = 2
+Global $STATE_CHECK_NOT_MATCHED = 3
+
 
 _OpenCV_Startup();loads opencv DLLs
-_OpenCV_EnableLogging(True,True,True) ;Logs matches, errors in a log file and autoit console output.
+;_OpenCV_EnableLogging(True,True,True) ;Logs matches, errors in a log file and autoit console output.
 _log4a_SetEnable()
 DirCreate(@MyDocumentsDir & "\test_folder\")
 Run($remoteplay)
@@ -49,107 +56,96 @@ Sleep(1*1000)
 $hWnd = WinWaitActive($win_title,"",120)
 _log4a_Info("Start to play games")
 
-Local $Threshold = 0.3
-While 1
-   if not WinExists($win_title) Then
-	  _log4a_Info("The window is closed")
-	  ExitLoop
-   EndIf
-
-   ;$hBitmap = _ScreenCapture_CaptureWnd("", $hWnd)
-   ;_ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\"&@HOUR&@MIN&@SEC&"Image.jpg", $hBitmap)
-
-   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\start_game.png", $Threshold)
-   If Not @error Then
-	  _log4a_Info("find start game pic")
-	  Send("{ENTER}")
-	  Sleep(1*1000)
-	  ContinueLoop
-   EndIf
-
-
-   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\pause_menu.png", $Threshold)
-   If Not @error Then
-	  _log4a_Info("find use select menu")
-	  Send("{ESC}")
-	  Sleep(1*1000)
-	  ContinueLoop
-   EndIf
-
-   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\pause_menu_2.png", $Threshold)
-   If Not @error Then
-	  _log4a_Info("find pause menu")
-	  Send("{ESC}")
-	  Sleep(1*1000)
-	  ContinueLoop
-   EndIf
-
-   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\match_end.png", $Threshold)
-   If Not @error Then
-	  _log4a_Info("find match end stage")
-	  Send("{ENTER}")
-	  Sleep(1*1000)
-	  ContinueLoop
-   EndIf
-
-   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\match_end_continue.png", $Threshold)
-   If Not @error Then
-	  _log4a_Info("find match end continue icon")
-	  Send("{ENTER}")
-	  Sleep(1*1000)
-	  ContinueLoop
-   EndIf
+Local $Threshold = 0.7
+Global $game_pic_array[0]
+_ArrayAdd($game_pic_array, "start_game.png")
+_ArrayAdd($game_pic_array, "user_select_menu.png")
+_ArrayAdd($game_pic_array, "pause_menu.png")
+_ArrayAdd($game_pic_array, "match_end.png")
+_ArrayAdd($game_pic_array, "match_end_continue.png")
 
 
 
+While(1)
+    Local $hBitmap = _ScreenCapture_CaptureWnd("", $hWnd)
 
-   Sleep(2*1000)
+    For $i = 0 To UBound($game_pic_array) - 1
+        $ret = CheckGameState($game_pic_array[$i],$hBitmap,$Threshold)
+        if $ret == $STATE_CHECK_WIN_CLOSED Then
+            _WinAPI_DeleteObject($hBitmap)
+            ExitLoop 2
+        endif
+
+        if $ret == $STATE_CHECK_MATCHED Then
+            DoKeyPress($i)
+            _WinAPI_DeleteObject($hBitmap)
+            Sleep($game_window_check_time)
+            ContinueLoop 2
+        endif
+    next
+
+    ;_ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\"&@HOUR&@MIN&@SEC&"Image.jpg", $hBitmap)
+    _WinAPI_DeleteObject($hBitmap)
+    Sleep($game_window_check_time)
 WEnd
 
 _OpenCV_Shutdown();Closes DLLs
 
 
-#comments-start
-While 1
-$hBitmap = _ScreenCapture_CaptureWnd("", $hWnd)
-_ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\"&@HOUR&@MIN&@SEC&"Image.jpg", $hBitmap)
-Sleep(1*1000)
-WEnd
-#comments-end
-
-#comments-start
-; press esc for 3 times
-_log4a_Info("Begin to send esc")
-For $i = 1 To 20
-   Send("{ESC}")
-   Sleep(1*1000)
-Next
-_log4a_Info("End to send esc")
-
-; press enter for 3 times
-_log4a_Info("Begin to send enter")
-For $i = 1 To 20
-   Send("{Enter}")
-   Sleep(1*1000)
-Next
-_log4a_Info("End to send enter")
 
 
 
-_log4a_Info("Begin to send esc")
-For $i = 1 To 40
-   Send("{ESC}")
-   Sleep(1*1000)
-Next
-_log4a_Info("End to send esc")
+Func CheckGameState($pic_name,$hBitmap,$Threshold)
+    $Match_Pic = @ScriptDir&"\pes2019_img_search\"&$pic_name
+
+    ; Check win status
+	if not WinExists($win_title) Then
+		_log4a_Info("The window is closed")
+		return $STATE_CHECK_WIN_CLOSED
+	EndIf
+
+    ; Do Pic match compare
+	$Match = _MatchPicture($Match_Pic,$hBitmap, $Threshold)
+    If Not @error Then
+        ;Find match pic
+        _log4a_Info("match success for "&$pic_name)
+        return $STATE_CHECK_MATCHED
+    else
+        _log4a_Info("match faied for "&$pic_name)
+        return $STATE_CHECK_NOT_MATCHED
+    EndIf
+EndFunc
 
 
-While 1
-   Send("{Enter}")
-   Sleep(1000)
-WEnd
-#comments-end
+Func DoKeyPress($arry_index)
+    Switch $arry_index
+        case 0
+            SendEnter()
+        case 1
+            SendESC()
+        case 2
+            SendESC()
+        case 3
+            SendEnter()
+        case 4
+            SendEnter()
+    EndSwitch
 
+EndFunc
+
+
+Func SendEnter()
+    Send("{ENTER}")
+    WinWait($win_title, "", 10)
+    _log4a_Info("sending {ENTER}")
+EndFunc
+
+
+Func SendESC()
+    Send("{ESC}")
+    WinWait($win_title, "", 10)
+    _log4a_Info("sending {ESC}")
+EndFunc
 
 
 

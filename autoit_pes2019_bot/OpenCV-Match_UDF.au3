@@ -34,15 +34,15 @@ EndFunc   ;==>_ClickMouse
 ; Syntax ........: _MatchPicture($Match_Pic[, $Threshold = 0.9[, $CustomCords = False[, $LoopCount = 1[, $LoopWait = 2000]]]])
 ; Parameters ....: $Match_Pic           -  The path to the picture to be matched.
 ;                  $Threshold           - [optional] Threshold 0.1-1.0. The higher, the more precisely the match picture has to be in order to match. Default is 0.9.
-;                  $CustomCords         - [optional] An array with coordinates for a rect x1,y1,x2,y2 that can be used to search on a specific region of the screen. Can be generated using the provided Snapshot-Tool. Default is False. 
+;                  $CustomCords         - [optional] An array with coordinates for a rect x1,y1,x2,y2 that can be used to search on a specific region of the screen. Can be generated using the provided Snapshot-Tool. Default is False.
 ;                  $LoopCount           - [optional] The number of tries that the script will recheck if the match picture can be found on the screen. Default is 1.
 ;                  $LoopWait            - [optional] The wait time in ms between each try. Default is 2000 ms.
 ; Return values .: Array with coordinates(x1,y1,x2,y2) of the match or @error if no match was found.
 ; Author ........: BB_19
 ; Related .......: https://www.autoitscript.com/forum/topic/160732-opencv-udf/
-; Credits .....: @mylise 
+; Credits .....: @mylise
 ; ===============================================================================================================================
-Func _MatchPicture($Match_Pic, $Threshold = 0.9, $CustomCords = False, $LoopCount = 1, $LoopWait = 2000)
+Func _MatchPicture($Match_Pic,$hBitmap,$Threshold = 0.9, $CustomCords = False, $LoopCount = 1, $LoopWait = 2000)
 	If Not FileExists($Match_Pic) Then
 		_Internal_ErrorLogger("Match Image not found: " & $Match_Pic)
 		Return SetError(1)
@@ -51,7 +51,7 @@ Func _MatchPicture($Match_Pic, $Threshold = 0.9, $CustomCords = False, $LoopCoun
 		ConsoleWrite("Error: $LoopCount Variable set to 0. At least 1 is required.")
 		Return SetError(1)
 	EndIf
-	Local $hBitmap
+
 
 	;Performance Counters
 	Local $Perf = TimerInit()
@@ -60,18 +60,11 @@ Func _MatchPicture($Match_Pic, $Threshold = 0.9, $CustomCords = False, $LoopCoun
 	Local $hMatch_Size = _cvGetSize($hMatch_Pic)
 	Local $width2 = DllStructGetData($hMatch_Size, "width")
 	Local $height2 = DllStructGetData($hMatch_Size, "height")
-	Local $ScreenSize = _ScreenSize()
+	;Local $ScreenSize = _ScreenSize()
 
 	For $iTries = 1 To $LoopCount Step +1
 		;Capature Screen / Load as Main image
-		If Not IsArray($CustomCords) Then
-
-			$hBitmap = _ScreenCapture_Capture("", 0, 0, $ScreenSize[0], $ScreenSize[1], False)
-		Else
-			$hBitmap = _ScreenCapture_Capture("", $CustomCords[0], $CustomCords[1], $CustomCords[2], $CustomCords[3], False)
-		EndIf
 		Local $Bitmap = _GDIPlus_BitmapCreateFromHBITMAP($hBitmap)
-
 		Local $hMain_Pic = _Opencv_BMP2IPL($Bitmap)
 		Local $hMain_Size = _cvGetSize($hMain_Pic)
 		Local $width = DllStructGetData($hMain_Size, "width")
@@ -111,7 +104,6 @@ Func _MatchPicture($Match_Pic, $Threshold = 0.9, $CustomCords = False, $LoopCoun
 		_cvReleaseMat($presult)
 		_cvReleaseImage($hMain_Pic)
 		_GDIPlus_BitmapDispose($Bitmap)
-		_WinAPI_DeleteObject($hBitmap)
 
 		;Check if found
 		If Not (DllStructGetData($tmaxloc, "x") = 0 And DllStructGetData($tmaxloc, "y") = 0 And $width2 = DllStructGetData($tmaxloc, "x") + $width2 And $height2 = DllStructGetData($tmaxloc, "y") + $height2) Then
@@ -129,7 +121,7 @@ EndFunc   ;==>_MatchPicture
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _OpenCV_EnableLogging
-; Description ...:  Enables Logging of matches and errors in file and console. 
+; Description ...:  Enables Logging of matches and errors in file and console.
 ; Syntax ........: _OpenCV_EnableLogging([$MatchLogging = True[, $ErrorLogging = False[, $AutoitConsoleLogging = False]]])
 ; Parameters ....: $MatchLogging        - [optional] Logs all matches in a file with the coordinates and other details. Default is True.
 ;                			  $ErrorLogging       	  - [optional]  Logs all errors including failed matches in a file. Default is False.
@@ -144,7 +136,7 @@ EndFunc   ;==>_OpenCV_EnableLogging
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _MarkMatch
-; Description ...:  Draws a rect on the position of the match to indicate where the match was found on the screen. 
+; Description ...:  Draws a rect on the position of the match to indicate where the match was found on the screen.
 ; Syntax ........: _MarkMatch($Coordinates[, $iColor = 0x0000FF])
 ; Parameters ....: $Coordinates   - Array returned by _MatchPicture.
 ;                  			  $iColor              - [optional] an integer value. Default is 0x0000FF.

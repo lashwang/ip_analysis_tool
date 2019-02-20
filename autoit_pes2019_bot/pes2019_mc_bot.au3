@@ -64,6 +64,7 @@ While (not $game_window_started)
    Sleep(2*1000)
 WEnd
 
+AdlibUnRegister("onViewPanelCheck")
 
 WinActive($win_title)
 Sleep(1*1000)

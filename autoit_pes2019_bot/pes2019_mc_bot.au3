@@ -48,15 +48,27 @@ WinActive($win_title)
 Sleep(1*1000)
 $hWnd = WinWaitActive($win_title,"",120)
 _log4a_Info("Start to play games")
+
+Local $Threshold = 0.3
 While 1
    if not WinExists($win_title) Then
 	  _log4a_Info("The window is closed")
 	  ExitLoop
    EndIf
 
-   $hBitmap = _ScreenCapture_CaptureWnd("", $hWnd)
-   _ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\"&@HOUR&@MIN&@SEC&"Image.jpg", $hBitmap)
-   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\pause_menu.png", 0.70)
+   ;$hBitmap = _ScreenCapture_CaptureWnd("", $hWnd)
+   ;_ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\"&@HOUR&@MIN&@SEC&"Image.jpg", $hBitmap)
+
+   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\start_game.png", $Threshold)
+   If Not @error Then
+	  _log4a_Info("find start game pic")
+	  Send("{ENTER}")
+	  Sleep(1*1000)
+	  ContinueLoop
+   EndIf
+
+
+   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\pause_menu.png", $Threshold)
    If Not @error Then
 	  _log4a_Info("find use select menu")
 	  Send("{ESC}")
@@ -64,7 +76,7 @@ While 1
 	  ContinueLoop
    EndIf
 
-   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\pause_menu_2.png", 0.70)
+   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\pause_menu_2.png", $Threshold)
    If Not @error Then
 	  _log4a_Info("find pause menu")
 	  Send("{ESC}")
@@ -72,7 +84,7 @@ While 1
 	  ContinueLoop
    EndIf
 
-   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\match_end.png", 0.70)
+   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\match_end.png", $Threshold)
    If Not @error Then
 	  _log4a_Info("find match end stage")
 	  Send("{ENTER}")
@@ -80,13 +92,16 @@ While 1
 	  ContinueLoop
    EndIf
 
-   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\match_end_continue.png", 0.70)
+   $Match = _MatchPicture(@ScriptDir&"\pes2019_img_search\match_end_continue.png", $Threshold)
    If Not @error Then
 	  _log4a_Info("find match end continue icon")
 	  Send("{ENTER}")
 	  Sleep(1*1000)
 	  ContinueLoop
    EndIf
+
+
+
 
    Sleep(2*1000)
 WEnd

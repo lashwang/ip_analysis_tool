@@ -111,7 +111,8 @@ Func _MatchPicture($Match_Pic,$hBitmap,$Threshold = 0.9, $CustomCords = False, $
 			_Internal_MatchLogger("Match found at: " & $Coordinates[0] & "|" & $Coordinates[1] & "|" & $Coordinates[2] & "|" & $Coordinates[3] & " // Loop counter: " & $iTries & " // Threshold: " & $Threshold & " // Total check time: " & Round(TimerDiff($Perf), 0) & " ms")
 			Return $Coordinates
 		EndIf
-		Sleep($LoopWait)
+		if $LoopCount > 1 Then
+			Sleep($LoopWait)
 	Next
 	_cvReleaseImage($hMatch_Pic)
 	_Internal_ErrorLogger("No match found. Loop counter: " & $LoopCount & ". // Total check time: " & Round(TimerDiff($Perf), 0) & " ms // Wait-Time per loop: " & $LoopWait & " ms. // Threshold: " & $Threshold & " // Match Image: " & $Match_Pic)

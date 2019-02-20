@@ -23,6 +23,8 @@ Global $game_window_check_time = 2*1000
 Global $STATE_CHECK_WIN_CLOSED = 1
 Global $STATE_CHECK_MATCHED = 2
 Global $STATE_CHECK_NOT_MATCHED = 3
+Global $game_window_started = False
+
 
 _log4a_SetEnable()
 
@@ -52,19 +54,14 @@ Sleep(1*1000)
 ControlClick($hWnd, "",$btn_start)
 Sleep(1*1000)
 
-Global $hCtrl = 0, $Waiting = True
-While ($Waiting)
-   If $Waiting And WinExists($win_title) Then
-	  $hCtrl = ControlGetHandle($win_title, "", "[NAME:ViewPanel]")
-		 If $hCtrl Then
-			; we got the handle, so the button is there
-			; now do whatever you need to do
-			_log4a_Info("Find Viewpanel!!!");
-			$Waiting = False
-	  EndIf
-   EndIf
+AdlibRegister("ProcessCheck",1*1000)
+AdlibRegister("onViewPanelCheck",5*1000)
+
+While (not $game_window_started)
    Sleep(2*1000)
 WEnd
+
+
 WinActive($win_title)
 Sleep(1*1000)
 $hWnd = WinWaitActive($win_title,"",120)
@@ -162,4 +159,28 @@ Func SendESC()
     WinWait($win_title, "", 10)
     _log4a_Info("sending {ESC}")
 EndFunc
+
+Func ProcessCheck()
+	;_log4a_Info("ProcessCheck")
+	If not ProcessExists($process_name) Then
+		_log4a_Info("Process exited,stop!!!!")
+		exit 0
+	endif
+EndFunc
+
+
+Func onViewPanelCheck()
+	_log4a_Info("onViewPanelCheck");
+	If not $game_window_started And WinExists($win_title) Then
+		$hCtrl = ControlGetHandle($win_title, "", "[NAME:ViewPanel]")
+		If $hCtrl Then
+			; we got the handle, so the button is there
+			; now do whatever you need to do
+			_log4a_Info("Find Viewpanel!!!");
+			$game_window_started = True
+		EndIf
+	EndIf
+EndFunc
+
+
 

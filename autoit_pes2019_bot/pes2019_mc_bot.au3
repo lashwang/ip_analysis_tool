@@ -232,13 +232,16 @@ EndFunc   ;==>_Example
 Func checkInvalidWindow()
     Local $tv_title = "发起会话"
     Local $tv_btn = "确定"
-    Local $tv_Wnd = WinActive($tv_title,$tv_btn)
+    Local $tv_Wnd = WinExists($tv_title,$tv_btn)
     If $tv_Wnd Then
 	  _log4a_Info("Find team view window")
-      ControlClick($tv_Wnd, "",$tv_btn)
+	  $tv_Wnd = WinActivate($tv_title)
+	  WinWaitActive($tv_title,"",10)
+	  ControlClick($tv_Wnd, "",$tv_btn)
       return
     EndIf
-EndFunc
+ EndFunc
+
 
 Func processMatchEnd()
     if $match_end_processing then

@@ -8,9 +8,14 @@
 #include "OpenCV-Match_UDF.au3"
 #include <Array.au3>
 #include <StringConstants.au3>
+#include "authread.au3"
+
+
+
 
 
 Global $remoteplay = "C:\Program Files (x86)\Sony\PS4 Remote Play\RemotePlay.exe"
+Global $process_name = "RemotePlay.exe"
 Global $rplay_class = "WindowsForms10.BUTTON.app.0.141b42a_r9_ad1"
 Global $btn_start = "开始"
 Global $win_title = "PS4遥控操作"
@@ -19,10 +24,20 @@ Global $STATE_CHECK_WIN_CLOSED = 1
 Global $STATE_CHECK_MATCHED = 2
 Global $STATE_CHECK_NOT_MATCHED = 3
 
+_log4a_SetEnable()
+
+If ProcessExists($process_name) Then ; Check if the Notepad process is running.
+    _log4a_Info("process already existed.")
+	exit 0
+ EndIf
+
+
 
 _OpenCV_Startup();loads opencv DLLs
 ;_OpenCV_EnableLogging(True,True,True) ;Logs matches, errors in a log file and autoit console output.
-_log4a_SetEnable()
+;_AuThread_Startup()
+
+
 DirCreate(@MyDocumentsDir & "\test_folder\")
 Run($remoteplay)
 Global $hWnd = WinWaitActive($win_title,$btn_start,120)
@@ -36,7 +51,6 @@ Sleep(1*1000)
 ; press start
 ControlClick($hWnd, "",$btn_start)
 Sleep(1*1000)
-
 
 Global $hCtrl = 0, $Waiting = True
 While ($Waiting)
@@ -148,6 +162,4 @@ Func SendESC()
     WinWait($win_title, "", 10)
     _log4a_Info("sending {ESC}")
 EndFunc
-
-
 

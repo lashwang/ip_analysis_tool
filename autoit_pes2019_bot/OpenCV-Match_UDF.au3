@@ -113,6 +113,7 @@ Func _MatchPicture($Match_Pic,$hBitmap,$Threshold = 0.9, $CustomCords = False, $
 		EndIf
 		if $LoopCount > 1 Then
 			Sleep($LoopWait)
+		endif
 	Next
 	_cvReleaseImage($hMatch_Pic)
 	_Internal_ErrorLogger("No match found. Loop counter: " & $LoopCount & ". // Total check time: " & Round(TimerDiff($Perf), 0) & " ms // Wait-Time per loop: " & $LoopWait & " ms. // Threshold: " & $Threshold & " // Match Image: " & $Match_Pic)

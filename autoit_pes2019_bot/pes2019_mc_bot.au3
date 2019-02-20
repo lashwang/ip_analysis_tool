@@ -56,6 +56,9 @@ Sleep(1*1000)
 
 AdlibRegister("ProcessCheck",1*1000)
 AdlibRegister("onViewPanelCheck",5*1000)
+AdlibRegister("screen_capture",90*1000)
+
+
 
 While (not $game_window_started)
    Sleep(2*1000)
@@ -180,6 +183,12 @@ Func onViewPanelCheck()
 			$game_window_started = True
 		EndIf
 	EndIf
+EndFunc
+
+Func screen_capture()
+	Local $hBitmap = _ScreenCapture_CaptureWnd("", $hWnd)
+	_ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\image_"&@HOUR&"_"&@MIN&".jpg", $hBitmap)
+	_WinAPI_DeleteObject($hBitmap)
 EndFunc
 
 

@@ -3,7 +3,7 @@
 #include <Timers.au3>
 #include <ScreenCapture.au3>
 #include <GUIConstantsEx.au3>
-#include <ImageSearch.au3>
+;#include <ImageSearch.au3>
 #include "log4a.au3"
 #include "OpenCV-Match_UDF.au3"
 #include <Array.au3>
@@ -25,6 +25,8 @@ Global $STATE_CHECK_MATCHED = 2
 Global $STATE_CHECK_NOT_MATCHED = 3
 Global $game_window_started = False
 Global $match_end_processing = False
+Global $find_manager_renew_screen = False
+Global $current_game_index = 0
 
 _log4a_SetEnable()
 
@@ -56,8 +58,7 @@ Sleep(1*1000)
 
 AdlibRegister("ProcessCheck",1*1000)
 AdlibRegister("onViewPanelCheck",5*1000)
-AdlibRegister("screen_capture",30*1000)
-AdlibRegister("processMatchEnd",1*1000)
+AdlibRegister("screen_capture",20*1000)
 
 
 
@@ -79,18 +80,26 @@ _ArrayAdd($game_pic_array, "user_select_menu.png")		;1
 _ArrayAdd($game_pic_array, "half_time.png")				;2
 _ArrayAdd($game_pic_array, "pause_menu.png")			;3
 _ArrayAdd($game_pic_array, "match_end.png")				;4
-_ArrayAdd($game_pic_array, "team_manager.png")			;5
+_ArrayAdd($game_pic_array, "team_manager_item.png")		;5
+_ArrayAdd($game_pic_array, "team_manager_main.png")		;6
+_ArrayAdd($game_pic_array, "recontract_manger_notify.png")		    ;7
+_ArrayAdd($game_pic_array, "highlight_yes.png")		                ;8
+_ArrayAdd($game_pic_array, "highlight_no.png")		                ;9
+_ArrayAdd($game_pic_array, "renew_contract_success.png")		    ;10
 
-Func DoKeyPress($arry_index)
+
+Func DoKeyPress($arry_index,$hBitmap)
     Switch $arry_index
          case 0 ;start game window
             SendEnter()
             SendEnter()
             SendEnter()
+			AdlibRegister("screen_capture",60*1000)
          case 1 ;手柄选择界面
             SendESC()
             SendESC()
             SendESC()
+			AdlibRegister("screen_capture",60*1000)
 	     case 2 ;中场休息
 			SendEnter()
             SendEnter()
@@ -99,11 +108,34 @@ Func DoKeyPress($arry_index)
          case 4 ;比赛结束界面
             SendEnter()
             $match_end_processing = True
-		 case 5 ;小队管理
+			AdlibRegister("screen_capture",2*1000)
+            AdlibRegister("processMatchEnd",5*1000)
+		 case 5 ;小队管理菜单
             AdlibUnRegister("processMatchEnd")
             $match_end_processing = False
+         case 6 ;小队管理主界面
+            AdlibUnRegister("processMatchEnd")
+            $match_end_processing = False
+            SendESC()
+         case 7 ;主教练续约
+            if not $find_manager_renew_screen then
+                $find_manager_renew_screen = True
+            endif
+         case 8 ;yes
+            if $find_manager_renew_screen then
+                SendEnter()
+                AdlibRegister("processManagerRecontract",1*1000)
+            endif
+         case 9 ;no
+            if $find_manager_renew_screen then
+                SendRight()
+            endif
+         case 10 ; 已延长合约
+            if $find_manager_renew_screen then
+                $find_manager_renew_screen = False
+                AdlibUnRegister("processManagerRecontract")
+            endif
     EndSwitch
-
 EndFunc
 
 While(1)
@@ -117,10 +149,9 @@ While(1)
         endif
 
         if $ret == $STATE_CHECK_MATCHED Then
-            DoKeyPress($i)
-            _WinAPI_DeleteObject($hBitmap)
-            Sleep($game_window_check_time)
-            ContinueLoop 2
+            activatePlayWindow()
+            DoKeyPress($i,$hBitmap)
+            $current_game_index = $i
         endif
     next
 
@@ -173,6 +204,12 @@ Func SendESC()
     _log4a_Info("sending {ESC}")
 EndFunc
 
+Func SendRight()
+    send("{RIGHT}")
+    WinWait($win_title, "", 100)
+    _log4a_Info("sending {RIGHT}")
+EndFunc
+
 Func ProcessCheck()
 	;_log4a_Info("ProcessCheck")
 	If not ProcessExists($process_name) Then
@@ -198,7 +235,7 @@ EndFunc
 
 Func screen_capture()
 	Local $hBitmap = _ScreenCapture_CaptureWnd("", $hWnd)
-	_ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\image_"&@HOUR&"_"&@MIN&".bmp", $hBitmap)
+	_ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\image_"&@HOUR&"_"&@MIN&"_"&@SEC&".bmp", $hBitmap)
 	_WinAPI_DeleteObject($hBitmap)
 EndFunc
 
@@ -222,7 +259,7 @@ Func send_email()
 
     Local $bIsHTMLBody = False
 
-    Local $rc = _INetSmtpMailCom($sSmtpServer, $sFromName, $sFromAddress, $sToAddress, $sSubject, $sBody, $sAttachFiles, $sCcAddress, $sBccAddress, $sImportance, $sUsername, $sPassword, $iIPPort, $bSSL, $bIsHTMLBody)
+    Local $rc = _SMTP_SendEmail($sSmtpServer, $sFromName, $sFromAddress, $sToAddress, $sSubject, $sBody, $sAttachFiles, $sCcAddress, $sBccAddress, $sImportance, $sUsername, $sPassword, $iIPPort, $bSSL, $bIsHTMLBody)
     If @error Then
         _log4a_Info("send email failed.");
     EndIf
@@ -245,7 +282,25 @@ Func checkInvalidWindow()
 
 Func processMatchEnd()
     if $match_end_processing then
+        if not $find_manager_renew_screen then
+            _log4a_Info("processMatchEnd")
+            activatePlayWindow()
+            SendEnter()
+        endif
+    endif
+EndFunc
+
+Func processManagerRecontract()
+    if $find_manager_renew_screen then
+        _log4a_Info("processManagerRecontract")
+        activatePlayWindow()
         SendEnter()
     endif
 EndFunc
+
+Func activatePlayWindow()
+    WinActivate($win_title)
+	WinWaitActive($win_title,"",1)
+EndFunc
+
 

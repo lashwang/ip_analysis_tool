@@ -9,7 +9,7 @@
 #include <Array.au3>
 #include <StringConstants.au3>
 #include "authread.au3"
-
+#include "SmtpMailer.au3"
 
 
 
@@ -192,5 +192,30 @@ Func screen_capture()
 	_WinAPI_DeleteObject($hBitmap)
 EndFunc
 
+Func send_email()
+    Local $sSmtpServer = "MailServer" ; address for the smtp-server to use - REQUIRED
+    Local $sFromName = "Name" ; name from who the email was sent
+    Local $sFromAddress = "your@Email.Address.com" ; address from where the mail should come
+    Local $sToAddress = "your@Email.Address.com" ; destination address of the email - REQUIRED
+    Local $sSubject = "Userinfo" ; subject from the email - can be anything you want it to be
+    Local $sBody = "" ; the messagebody from the mail - can be left blank but then you get a blank mail
+    Local $sAttachFiles = "" ; the file(s) you want to attach seperated with a ; (Semicolon) - leave blank if not needed
+    Local $sCcAddress = "CCadress1@test.com" ; address for cc - leave blank if not needed
+    Local $sBccAddress = "BCCadress1@test.com" ; address for bcc - leave blank if not needed
+    Local $sImportance = "Normal" ; Send message priority: "High", "Normal", "Low"
+    Local $sUsername = "******" ; username for the account used from where the mail gets sent - REQUIRED
+    Local $sPassword = "********" ; password for the account used from where the mail gets sent - REQUIRED
+    Local $iIPPort = 25 ; port used for sending the mail
+    Local $bSSL = False ; enables/disables secure socket layer sending - set to True if using httpS
+    ; Local $iIPPort = 465  ; GMAIL port used for sending the mail
+    ; Local $bSSL = True   ; GMAIL enables/disables secure socket layer sending - set to True if using httpS
 
+    Local $bIsHTMLBody = False
+
+    Local $rc = _INetSmtpMailCom($sSmtpServer, $sFromName, $sFromAddress, $sToAddress, $sSubject, $sBody, $sAttachFiles, $sCcAddress, $sBccAddress, $sImportance, $sUsername, $sPassword, $iIPPort, $bSSL, $bIsHTMLBody)
+    If @error Then
+        _log4a_Info("send email failed.");
+    EndIf
+
+EndFunc   ;==>_Example
 

@@ -234,9 +234,9 @@ Func onViewPanelCheck()
 EndFunc
 
 Func screen_capture()
-	Local $hBitmap = _ScreenCapture_CaptureWnd("", $hWnd)
-	_ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\image_"&@HOUR&"_"&@MIN&"_"&@SEC&".bmp", $hBitmap)
-	_WinAPI_DeleteObject($hBitmap)
+	;Local $hBitmap = _ScreenCapture_CaptureWnd("", $hWnd)
+	;_ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\image_"&@HOUR&"_"&@MIN&"_"&@SEC&".bmp", $hBitmap)
+	;_WinAPI_DeleteObject($hBitmap)
 EndFunc
 
 Func send_email()

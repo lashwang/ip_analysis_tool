@@ -90,6 +90,7 @@ _ArrayAdd($game_pic_array, "renew_contract_success.png")		    ;10
 
 
 Func DoKeyPress($arry_index,$hBitmap)
+	_log4a_Info("DoKeyPress:"&$arry_index)
     Switch $arry_index
          case 0 ;start game window
             SendEnter()

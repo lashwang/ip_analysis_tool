@@ -10,15 +10,9 @@
 #include <StringConstants.au3>
 #include "authread.au3"
 #include "SmtpMailer.au3"
+#include "PS4_RPLAY_CONST.au3"
+#include "PS4_KeyAPI.au3"
 
-
-
-
-Global $remoteplay = "C:\Program Files (x86)\Sony\PS4 Remote Play\RemotePlay.exe"
-Global $process_name = "RemotePlay.exe"
-Global $rplay_class = "WindowsForms10.BUTTON.app.0.141b42a_r9_ad1"
-Global $btn_start = "开始"
-Global $win_title = "PS4遥控操作"
 Global $game_window_check_time = 2*1000
 Global $STATE_CHECK_WIN_CLOSED = 1
 Global $STATE_CHECK_MATCHED = 2
@@ -31,21 +25,16 @@ Global $current_game_index = 0
 
 _log4a_SetEnable()
 
-If ProcessExists($process_name) Then ; Check if the Notepad process is running.
+If ProcessExists($g_RPLAY_EXE) Then ; Check if the Notepad process is running.
     _log4a_Info("process already existed.")
 	exit 0
- EndIf
-
-
+EndIf
 
 _OpenCV_Startup();loads opencv DLLs
-;_OpenCV_EnableLogging(True,True,True) ;Logs matches, errors in a log file and autoit console output.
-;_AuThread_Startup()
-
 
 DirCreate(@MyDocumentsDir & "\test_folder\")
-Run($remoteplay)
-Global $hWnd = WinWaitActive($win_title,$btn_start,120)
+Run($g_RPLAY_EXE_PATH)
+Global $hWnd = WinWaitActive($g_RPLAY_WIN_TITLE,$g_RPLAY_BTN_START,120)
 If $hWnd == 0 Then
    _log4a_Info("Open PS4 remote timeout")
    Exit
@@ -54,7 +43,7 @@ EndIf
 _log4a_Info("PS4 remote started.")
 Sleep(1*1000)
 ; press start
-ControlClick($hWnd, "",$btn_start)
+ControlClick($hWnd, "",$g_RPLAY_BTN_START)
 Sleep(1*1000)
 
 AdlibRegister("ProcessCheck",1*1000)
@@ -69,9 +58,9 @@ WEnd
 
 AdlibUnRegister("onViewPanelCheck")
 
-WinActive($win_title)
+WinActive($g_RPLAY_WIN_TITLE)
 Sleep(1*1000)
-$hWnd = WinWaitActive($win_title,"",120)
+$hWnd = WinWaitActive($g_RPLAY_WIN_TITLE,"",120)
 _log4a_Info("Start to play games")
 
 Local $Threshold = 0.7
@@ -93,22 +82,17 @@ Func DoKeyPress($arry_index,$hBitmap)
 	_log4a_Info("DoKeyPress:"&$arry_index)
     Switch $arry_index
          case 0 ;start game window
-            SendEnter()
-            SendEnter()
-            SendEnter()
+            _KeyPress($g_KEY_ID_CIRCLE)
 			AdlibRegister("screen_capture",60*1000)
          case 1 ;手柄选择界面
-            SendESC()
-            SendESC()
-            SendESC()
-			AdlibRegister("screen_capture",60*1000)
+            _KeyPress($g_KEY_ID_CROSS)
+            AdlibRegister("screen_capture",60*1000)
 	     case 2 ;中场休息
-			SendEnter()
-            SendEnter()
+			_KeyPress($g_KEY_ID_CIRCLE)
          case 3 ;暂停界面
-            SendESC()
+            _KeyPress($g_KEY_ID_CROSS)
          case 4 ;比赛结束界面
-            SendEnter()
+            _KeyPress($g_KEY_ID_CIRCLE)
             $match_end_processing = True
 			$email_sent = False
 			AdlibRegister("screen_capture",2*1000)
@@ -123,19 +107,19 @@ Func DoKeyPress($arry_index,$hBitmap)
          case 6 ;小队管理主界面
             AdlibUnRegister("processMatchEnd")
             $match_end_processing = False
-            SendESC()
+            _KeyPress($g_KEY_ID_CROSS)
          case 7 ;主教练续约
             if not $find_manager_renew_screen then
                 $find_manager_renew_screen = True
             endif
          case 8 ;yes
             if $find_manager_renew_screen then
-                SendEnter()
+                _KeyPress($g_KEY_ID_CIRCLE)
                 AdlibRegister("processManagerRecontract",1*1000)
             endif
          case 9 ;no
             if $find_manager_renew_screen then
-                SendRight()
+                _KeyPress($g_KEY_ID_RIGHT)
             endif
          case 10 ; 已延长合约
             if $find_manager_renew_screen then
@@ -170,14 +154,11 @@ WEnd
 _OpenCV_Shutdown();Closes DLLs
 
 
-
-
-
 Func CheckGameState($pic_name,$hBitmap,$Threshold)
     $Match_Pic = @ScriptDir&"\pes2019_img_search\"&$pic_name
 
     ; Check win status
-	if not WinExists($win_title) Then
+	if not WinExists($g_RPLAY_WIN_TITLE) Then
 		_log4a_Info("The window is closed")
 		return $STATE_CHECK_WIN_CLOSED
 	EndIf
@@ -196,30 +177,9 @@ EndFunc
 
 
 
-
-
-Func SendEnter()
-    Send("{ENTER}")
-    WinWait($win_title, "", 100)
-    _log4a_Info("sending {ENTER}")
-EndFunc
-
-
-Func SendESC()
-    Send("{ESC}")
-    WinWait($win_title, "", 100)
-    _log4a_Info("sending {ESC}")
-EndFunc
-
-Func SendRight()
-    send("{RIGHT}")
-    WinWait($win_title, "", 100)
-    _log4a_Info("sending {RIGHT}")
-EndFunc
-
 Func ProcessCheck()
 	;_log4a_Info("ProcessCheck")
-	If not ProcessExists($process_name) Then
+	If not ProcessExists($g_RPLAY_EXE) Then
 		_log4a_Info("Process exited,stop!!!!")
 		exit 0
 	endif
@@ -229,8 +189,8 @@ EndFunc
 
 Func onViewPanelCheck()
 	_log4a_Info("onViewPanelCheck");
-	If not $game_window_started And WinExists($win_title) Then
-		$hCtrl = ControlGetHandle($win_title, "", "[NAME:ViewPanel]")
+	If not $game_window_started And WinExists($g_RPLAY_WIN_TITLE) Then
+		$hCtrl = ControlGetHandle($g_RPLAY_WIN_TITLE, "", $g_RPLAY_GAME_CONTROL_CLASS)
 		If $hCtrl Then
 			; we got the handle, so the button is there
 			; now do whatever you need to do
@@ -241,9 +201,9 @@ Func onViewPanelCheck()
 EndFunc
 
 Func screen_capture()
-	;Local $hBitmap = _ScreenCapture_CaptureWnd("", $hWnd)
-	;_ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\image_"&@HOUR&"_"&@MIN&"_"&@SEC&".bmp", $hBitmap)
-	;_WinAPI_DeleteObject($hBitmap)
+	Local $hBitmap = _ScreenCapture_CaptureWnd("", $hWnd)
+	_ScreenCapture_SaveImage(@MyDocumentsDir&"\test_folder\image_"&@HOUR&"_"&@MIN&"_"&@SEC&".bmp", $hBitmap)
+	_WinAPI_DeleteObject($hBitmap)
 EndFunc
 
 
@@ -266,7 +226,7 @@ Func processMatchEnd()
         if not $find_manager_renew_screen then
             _log4a_Info("processMatchEnd")
             activatePlayWindow()
-            SendEnter()
+            _KeyPress($g_KEY_ID_CIRCLE)
         endif
     endif
 EndFunc
@@ -275,14 +235,15 @@ Func processManagerRecontract()
     if $find_manager_renew_screen then
         _log4a_Info("processManagerRecontract")
         activatePlayWindow()
-        SendEnter()
+        _KeyPress($g_KEY_ID_CIRCLE)
     endif
 EndFunc
 
 Func activatePlayWindow()
-    WinActivate($win_title)
-	WinWaitActive($win_title,"",1)
+    WinActivate($g_RPLAY_WIN_TITLE)
+	WinWaitActive($g_RPLAY_WIN_TITLE,"",1)
 EndFunc
+
 
 
 Func send_email()
@@ -311,3 +272,4 @@ Func send_email()
     EndIf
 
 EndFunc   ;==>_Example
+

@@ -2,11 +2,11 @@
 #include-once
 #include "log4a.au3"
 #include "SmtpMailer.au3"
+#include "PS4_KeyAPI.au3"
 
-
-_log4a_SetEnable()
-checkInvalidWindow()
-send_email()
+;_log4a_SetEnable()
+;checkInvalidWindow()
+;send_email()
 
 
 Func checkInvalidWindow()

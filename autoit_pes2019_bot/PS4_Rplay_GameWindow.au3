@@ -7,7 +7,10 @@
 
 Global $g_hwnd_rplay = 0
 Global $g_rplay_started = False
-
+Global const $g_WindowPosX = 175
+Global const $g_WindowPosY = 35
+Global const $g_WindowWidth = 883
+Global const $g_WindowHight = 583
 
 if @ScriptName == "PS4_Rplay_GameWindow.au3" then
     _log4a_SetEnable()
@@ -55,6 +58,7 @@ Func _PS4_GameWindow_StartUp()
     WinActivate($g_RPLAY_WIN_TITLE)
     $g_hwnd_rplay = WinWaitActive($g_RPLAY_WIN_TITLE,"",120)
     _log4a_Info("PS4 Game Window Start compelete,hwnd="&$g_hwnd_rplay)
+    WinMove($g_RPLAY_WIN_TITLE,"",$g_WindowPosX,$g_WindowPosY,$g_WindowWidth,$g_WindowHight)
 EndFunc
 
 Func onViewPanelCheck()
@@ -78,6 +82,10 @@ Func GameWindowCheck()
 	endif
     checkInvalidWindow()
     WinActivate($g_RPLAY_WIN_TITLE)
+    Local $aPos = WinGetPos($g_RPLAY_WIN_TITLE)
+    ;_log4a_Info("X-Pos: "&$aPos[0]&"Y-Pos: "&$aPos[1]&"Width: "&$aPos[2]&"Height: "&$aPos[3])
+    
+    WinMove($g_RPLAY_WIN_TITLE,"",$aPos[0],$aPos[1],$g_WindowWidth,$g_WindowHight)
 EndFunc
 
 

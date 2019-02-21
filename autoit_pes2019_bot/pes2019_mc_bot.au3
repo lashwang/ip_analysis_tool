@@ -290,7 +290,7 @@ Func send_email()
     Local $sFromName = "Simon" ; name from who the email was sent
     Local $sFromAddress = "stock@zl-fm.com" ; address from where the mail should come
     Local $sToAddress = "lashwang@outlook.com" ; destination address of the email - REQUIRED
-	Local $sCcAddress = "" ; address for cc - leave blank if not needed
+	Local $sCcAddress = "swang@seven.com" ; address for cc - leave blank if not needed
     Local $sSubject = "PES2019 Game Finished" ; subject from the email - can be anything you want it to be
     Local $sBody = "PES2019 Game Finished" ; the messagebody from the mail - can be left blank but then you get a blank mail
     Local $sAttachFiles = "" ; the file(s) you want to attach seperated with a ; (Semicolon) - leave blank if not needed

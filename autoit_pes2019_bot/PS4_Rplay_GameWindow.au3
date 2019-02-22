@@ -92,10 +92,10 @@ Func GameWindowCheck()
     Local $aPos = WinGetPos($g_RPLAY_WIN_TITLE)
     ;_log4a_Info("X-Pos: "&$aPos[0]&"Y-Pos: "&$aPos[1]&"Width: "&$aPos[2]&"Height: "&$aPos[3])
     Local $time_diff = _NowCalc() - $now
-    if $time_diff > 90 then
+    WinMove($g_RPLAY_WIN_TITLE,"",$aPos[0],$aPos[1],$g_WindowWidth,$g_WindowHight)
+    if $time_diff > 60 then
         $now = _NowCalc()
         WinActivate($g_RPLAY_WIN_TITLE)
-        WinMove($g_RPLAY_WIN_TITLE,"",$aPos[0],$aPos[1],$g_WindowWidth,$g_WindowHight)
     endif
 EndFunc
 

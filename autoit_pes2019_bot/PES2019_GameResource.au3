@@ -64,7 +64,7 @@ Func CheckGameState($hBitmap,$Threshold,$onMatched)
             _log4a_Info("match success for "&$pic_name)
             if $i == $g_IMG_GAME_REPLAY or $i == $g_IMG_GAME_REPLAY_2 then
                 _KeyPress($g_KEY_ID_OPTION)
-            endif 
+            endif
             call($onMatched,$i,$hBitmap)
         else
             ;_log4a_Info("match faied for "&$pic_name)

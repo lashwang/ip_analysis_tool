@@ -55,6 +55,7 @@ Func DoKeyPress($arry_index,$hBitmap)
 				$email_sent = True
                 sleep(1000)
                 ProcessClose($g_RPLAY_EXE)
+                ProcessClose($g_PS4Macro_EXE)
 			endif
          case $g_IMG_TEAM_MANAGER_MAIN ;小队管理主界面
             AdlibUnRegister("processMatchEnd")
@@ -82,6 +83,15 @@ Func DoKeyPress($arry_index,$hBitmap)
 EndFunc
 
 While(1)
+    If not ProcessExists($g_RPLAY_EXE) Then
+		_log4a_Info("Process exited,stop!!!!")
+		exit 0
+	endif
+    if not WinActive($g_RPLAY_WIN_TITLE) then
+        _log4a_Info("win is not active, skip game state check")
+        Sleep($game_window_check_time)
+        ContinueLoop
+    endif
     Local $hBitmap = _ScreenCapture_CaptureWnd("", $g_hwnd_rplay)
     CheckGameState($hBitmap,$Threshold,"DoKeyPress")
     _WinAPI_DeleteObject($hBitmap)

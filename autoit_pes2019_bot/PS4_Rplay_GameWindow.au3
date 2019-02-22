@@ -27,8 +27,10 @@ Func _PS4_GameWindow_StartUp()
         endif
     endif
 
-    ;如果RPLAY已经打开了
+    ;如果RPLAY没有打开
     If Not ProcessExists($g_RPLAY_EXE) Then
+        ProcessClose($g_PS4Macro_EXE)
+        Sleep(1000)
         Run($g_RPLAY_EXE_PATH)
         $hWnd = WinWaitActive($g_RPLAY_WIN_TITLE,$g_RPLAY_BTN_START,120)
         If $hWnd == 0 Then

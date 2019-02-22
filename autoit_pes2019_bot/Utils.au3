@@ -2,6 +2,8 @@
 #include-once
 #include "SmtpMailer.au3"
 #include "log4a.au3"
+#include <Date.au3>
+
 
 Func send_email()
     Local $sSmtpServer = "smtp.ym.163.com" ; address for the smtp-server to use - REQUIRED
@@ -42,4 +44,23 @@ Func checkInvalidWindow()
       return
     EndIf
 EndFunc
+
+; Get timestamp for input datetime (or current datetime).
+Func _GetUnixTime($sDate = 0);Date Format: 2013/01/01 00:00:00 ~ Year/Mo/Da Hr:Mi:Se
+
+    Local $aSysTimeInfo = _Date_Time_GetTimeZoneInformation()
+    Local $utcTime = ""
+
+    If Not $sDate Then $sDate = _NowCalc()
+
+    If Int(StringLeft($sDate, 4)) < 1970 Then Return ""
+
+    If $aSysTimeInfo[0] = 2 Then ; if daylight saving time is active
+        $utcTime = _DateAdd('n', $aSysTimeInfo[1] + $aSysTimeInfo[7], $sDate) ; account for time zone and daylight saving time
+    Else
+        $utcTime = _DateAdd('n', $aSysTimeInfo[1], $sDate) ; account for time zone
+    EndIf
+
+    Return _DateDiff('s', "1970/01/01 00:00:00", $utcTime)
+EndFunc   ;==>_GetUnixTime
 

@@ -3,6 +3,7 @@
 #include "PS4_RPLAY_CONST.au3"
 #include "log4a.au3"
 #include "Utils.au3"
+#include <Date.au3>
 
 
 Global $g_hwnd_rplay = 0
@@ -79,16 +80,28 @@ EndFunc
 
 
 Func GameWindowCheck()
+    Local static $now = _NowCalc()
+
     If not ProcessExists($g_RPLAY_EXE) Then
 		_log4a_Info("Process exited,stop!!!!")
 		exit 0
 	endif
     checkInvalidWindow()
-    WinActivate($g_RPLAY_WIN_TITLE)
     Local $aPos = WinGetPos($g_RPLAY_WIN_TITLE)
     ;_log4a_Info("X-Pos: "&$aPos[0]&"Y-Pos: "&$aPos[1]&"Width: "&$aPos[2]&"Height: "&$aPos[3])
-    
-    WinMove($g_RPLAY_WIN_TITLE,"",$aPos[0],$aPos[1],$g_WindowWidth,$g_WindowHight)
+    Local $time_diff = _NowCalc() - $now
+    if $time_diff > 90 then
+        $now = _NowCalc()
+        WinActivate($g_RPLAY_WIN_TITLE)
+        WinMove($g_RPLAY_WIN_TITLE,"",$aPos[0],$aPos[1],$g_WindowWidth,$g_WindowHight)
+    endif
 EndFunc
 
-
+Func PS4MacroWindowStart()
+    If ProcessExists($g_PS4Macro_EXE) Then
+        ProcessClose($g_PS4Macro_EXE)
+        Sleep(2000)
+    endif
+    Run($g_PS4Macro_EXE_PATH)
+    Sleep(1000)
+EndFunc

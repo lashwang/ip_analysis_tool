@@ -32,7 +32,7 @@ Func test_ps4_key_map()
     _log4a_SetEnable()
     _log4a_Info(@ScriptName)
     While True
-        _KeyPress($g_KEY_ID_PS)
+        _KeyPress($g_KEY_ID_OPTION)
         Sleep(5000)
     WEnd
 EndFunc
@@ -40,27 +40,27 @@ EndFunc
 Func _KeyMap_Startup()
     _log4a_Info("_KeyMap_Startup")
     Opt('SendKeyDownDelay',$g_DEFAULT_KEYDOWN_DELAY)
-    
-    $g_KEY_MAP[$g_KEY_ID_OPTION] = "{Z}"
+
+    $g_KEY_MAP[$g_KEY_ID_OPTION] = "P"
     $g_KEY_MAP[$g_KEY_ID_PS] = "{LSHIFT}"
 
 
-    $g_KEY_MAP[$g_KEY_ID_TRIANGLE] = "{C}"
+    $g_KEY_MAP[$g_KEY_ID_TRIANGLE] = "C"
     $g_KEY_MAP[$g_KEY_ID_CIRCLE] = "{ENTER}"
     $g_KEY_MAP[$g_KEY_ID_CROSS] = "{ESCAPE}"
-    $g_KEY_MAP[$g_KEY_ID_SQUARE] = "{V}"
+    $g_KEY_MAP[$g_KEY_ID_SQUARE] = "V"
 
     $g_KEY_MAP[$g_KEY_ID_UP] = "{UP}"
     $g_KEY_MAP[$g_KEY_ID_DOWN] = "{DOWN}"
     $g_KEY_MAP[$g_KEY_ID_LEFT] = "{LEFT}"
     $g_KEY_MAP[$g_KEY_ID_RIGHT] = "{RIGHT}"
 
-    $g_KEY_MAP[$g_KEY_ID_L1] = "{Q}"
-    $g_KEY_MAP[$g_KEY_ID_R1] = "{E}"
-    $g_KEY_MAP[$g_KEY_ID_L2] = "{U}"
-    $g_KEY_MAP[$g_KEY_ID_R2] = "{O}"
+    $g_KEY_MAP[$g_KEY_ID_L1] = "Q"
+    $g_KEY_MAP[$g_KEY_ID_R1] = "E"
+    $g_KEY_MAP[$g_KEY_ID_L2] = "U"
+    $g_KEY_MAP[$g_KEY_ID_R2] = "O"
 
-    
+
 EndFunc
 
 

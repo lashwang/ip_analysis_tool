@@ -20,7 +20,10 @@ endif
 
 Func _PS4_GameWindow_StartUp()
     if Not WinExists($g_RPLAY_WIN_TITLE) Then
-        Sleep(2000)
+        If ProcessExists($g_RPLAY_EXE) then
+            ProcessClose($g_RPLAY_EXE)
+            Sleep(2000)
+        endif
     endif
 
     ;如果RPLAY已经打开了

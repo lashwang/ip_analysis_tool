@@ -53,6 +53,8 @@ Func DoKeyPress($arry_index,$hBitmap)
 			if not $email_sent then
 				send_email()
 				$email_sent = True
+                sleep(1000)
+                ProcessClose($g_RPLAY_EXE)
 			endif
          case $g_IMG_TEAM_MANAGER_MAIN ;小队管理主界面
             AdlibUnRegister("processMatchEnd")
@@ -71,7 +73,7 @@ Func DoKeyPress($arry_index,$hBitmap)
             if $find_manager_renew_screen then
                 _KeyPress($g_KEY_ID_RIGHT)
             endif
-         case 10 ; 已延长合约
+         case $g_IMG_RECONTRACT_MANGER_NOTIFY ;已延长合约
             if $find_manager_renew_screen then
                 $find_manager_renew_screen = False
                 AdlibUnRegister("processManagerRecontract")

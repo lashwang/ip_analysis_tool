@@ -22,7 +22,7 @@ Func checkInvalidWindow()
     EndIf
 EndFunc
 
-Func send_email()
+Func send_email($sAttachFiles = "")
     Local $sSmtpServer = "smtp.ym.163.com" ; address for the smtp-server to use - REQUIRED
 	Local $iIPPort = 994 ; port used for sending the mail
     Local $sFromName = "Simon" ; name from who the email was sent
@@ -31,7 +31,7 @@ Func send_email()
 	Local $sCcAddress = "lashwang@outlook.com" ; address for cc - leave blank if not needed
     Local $sSubject = "PES2019 Game Finished" ; subject from the email - can be anything you want it to be
     Local $sBody = "PES2019 Game Finished" ; the messagebody from the mail - can be left blank but then you get a blank mail
-    Local $sAttachFiles = "" ; the file(s) you want to attach seperated with a ; (Semicolon) - leave blank if not needed
+    ;Local $sAttachFiles = "" ; the file(s) you want to attach seperated with a ; (Semicolon) - leave blank if not needed
     Local $sBccAddress = "" ; address for bcc - leave blank if not needed
     Local $sImportance = "Normal" ; Send message priority: "High", "Normal", "Low"
     Local $sUsername = "stock@zl-fm.com" ; username for the account used from where the mail gets sent - REQUIRED

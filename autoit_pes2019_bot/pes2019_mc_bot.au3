@@ -18,10 +18,14 @@ Global $game_window_check_time = 2*1000
 Global $match_end_processing = False
 Global $email_sent = False
 Global $find_manager_renew_screen = False
+Global $g_log_path = @MyDocumentsDir&"\pes2019.log"
+Global $g_game_end_snapshot = @MyDocumentsDir&"\pes2019_game_finish.jpg"
 
 DirCreate(@MyDocumentsDir & "\test_folder\")
 
 _log4a_SetEnable()
+_log4a_SetLogFile($g_log_path)
+_log4a_SetOutput($LOG4A_OUTPUT_BOTH)
 _KeyMap_Startup()
 _OpenCV_Startup();loads opencv DLLs
 _PS4_GameWindow_StartUp()
@@ -43,20 +47,18 @@ Func DoKeyPress($arry_index,$hBitmap)
          case $g_IMG_PAUSE_MENU ;暂停界面
             _KeyPress($g_KEY_ID_CROSS)
          case $g_IMG_MATCH_END ;比赛结束界面
-            _KeyPress($g_KEY_ID_CIRCLE)
-            $match_end_processing = True
-			$email_sent = False
-            AdlibRegister("processMatchEnd",5*1000)
+			_ScreenCapture_SaveImage($g_game_end_snapshot,$hBitmap)
+			_KeyPress($g_KEY_ID_CIRCLE)
+			_KeyPress($g_KEY_ID_CIRCLE)
+			_KeyPress($g_KEY_ID_CIRCLE)
+			_KeyPress($g_KEY_ID_CIRCLE)
+			_KeyPress($g_KEY_ID_CIRCLE)
+            send_email($g_log_path&";"&$g_game_end_snapshot)
+			sleep(1000)
+            ProcessClose($g_RPLAY_EXE)
+            ProcessClose($g_PS4Macro_EXE)
 		 case $g_IMG_TEAM_MANAGER_ITEM ;小队管理菜单
-            AdlibUnRegister("processMatchEnd")
-            $match_end_processing = False
-			if not $email_sent then
-				send_email()
-				$email_sent = True
-                sleep(1000)
-                ProcessClose($g_RPLAY_EXE)
-                ProcessClose($g_PS4Macro_EXE)
-			endif
+            
          case $g_IMG_TEAM_MANAGER_MAIN ;小队管理主界面
             AdlibUnRegister("processMatchEnd")
             $match_end_processing = False

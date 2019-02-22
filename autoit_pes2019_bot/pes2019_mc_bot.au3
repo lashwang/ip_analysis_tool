@@ -14,7 +14,7 @@
 #include "PS4_Rplay_GameWindow.au3"
 #include "PES2019_GameResource.au3"
 
-Global $game_window_check_time = 2*1000
+Global $game_window_check_time = 1*1000
 Global $match_end_processing = False
 Global $email_sent = False
 Global $find_manager_renew_screen = False
@@ -89,11 +89,11 @@ While(1)
 		_log4a_Info("Process exited,stop!!!!")
 		exit 0
 	endif
-    if not WinActive($g_RPLAY_WIN_TITLE) then
-        _log4a_Info("win is not active, skip game state check")
-        Sleep($game_window_check_time)
-        ContinueLoop
-    endif
+    ; if not WinActive($g_RPLAY_WIN_TITLE) then
+        ; _log4a_Info("win is not active, skip game state check")
+        ; Sleep($game_window_check_time)
+        ; ContinueLoop
+    ; endif
     Local $hBitmap = _ScreenCapture_CaptureWnd("", $g_hwnd_rplay)
     CheckGameState($hBitmap,$Threshold,"DoKeyPress")
     _WinAPI_DeleteObject($hBitmap)

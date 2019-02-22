@@ -23,7 +23,7 @@ Func send_email($sAttachFiles = "")
     ; Local $iIPPort = 465  ; GMAIL port used for sending the mail
     ; Local $bSSL = True   ; GMAIL enables/disables secure socket layer sending - set to True if using httpS
 
-    Local $bIsHTMLBody = False
+    Local $bIsHTMLBody = True
 
     Local $rc = _SMTP_SendEmail($sSmtpServer,$sUsername, $sPassword, $sFromName, $sFromAddress, $sToAddress, $sSubject, $sBody, $sAttachFiles, $sCcAddress, $sBccAddress, $sImportance,  $iIPPort, $bSSL, $bIsHTMLBody)
     If @error Then

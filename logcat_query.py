@@ -220,6 +220,12 @@ class QueryCmd():
             with open(output_name, 'a') as the_file:
                 the_file.write(results)
 
+    def obj_dump_so(self):
+        cmd = "android-objdump -t proxy/build/intermediates/ndkBuild/debug/obj/local/armeabi/libproxy.so"
+        output_name = "libproxy.so.map"
+        results = commands.getoutput(cmd)
+        with open(output_name, 'a') as the_file:
+            the_file.write(results)
 
     def reset_bc_tool(self):
         cmd = "sudo rm -rf /Users/simon/Library/Application Support/Beyond Compare/registry.dat"
@@ -273,6 +279,7 @@ class QueryCmd():
     def set_standby_bucket(self,package="gcm.play.android.samples.com.gcmquickstart"):
         cmd = "adb shell am set-standby-bucket {} rare".format(package)
         os.system(cmd)
+        self.get_standby_bucket(package)
 
     def restart_boolloader(self):
         cmd = "adb reboot bootloader"

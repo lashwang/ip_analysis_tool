@@ -11,6 +11,9 @@ import commands
 import glob
 import platform
 import sys
+import wx
+import BaseHTTPServer
+from SimpleHTTPServer import SimpleHTTPRequestHandler
 
 
 default_flavor = "adclearInternalDev"
@@ -284,6 +287,23 @@ class QueryCmd():
     def restart_boolloader(self):
         cmd = "adb reboot bootloader"
         os.system(cmd)
+
+    def list_apps(self):
+        cmd = "adb shell pm list packages -f -U"
+        os.system(cmd)
+
+    def screen_shot(self):
+        wx.App()  # Need to create an App instance before doing anything
+        screen = wx.ScreenDC()
+        size = screen.GetSize()
+        bmp = wx.EmptyBitmap(size[0], size[1])
+        mem = wx.MemoryDC(bmp)
+        mem.Blit(0, 0, size[0], size[1], screen, 0, 0)
+        del mem  # Release bitmap
+        bmp.SaveFile('screenshot.png', wx.BITMAP_TYPE_PNG)
+
+    def create_http_server(self):
+
 
 
 def main():

@@ -11,9 +11,6 @@ import commands
 import glob
 import platform
 import sys
-import wx
-import BaseHTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
 
 
 default_flavor = "adclearInternalDev"
@@ -303,7 +300,7 @@ class QueryCmd():
         bmp.SaveFile('screenshot.png', wx.BITMAP_TYPE_PNG)
 
     def create_http_server(self):
-
+        pass
 
 
 def main():

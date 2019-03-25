@@ -16,7 +16,7 @@ import sys
 default_flavor = "adclearInternalDev"
 
 port_query_reg_str = r"CSM\s+\[{}\].*client_src_port\s+(\d+),\s+csp_src_port\s+(\d+)"
-adclear_apk_path = "adclear/build/outputs/apk/{}/debug".format(default_flavor)
+adclear_apk_path = "app/build/outputs/apk/{}/debug".format(default_flavor)
 
 
 build_cmd = "gradlew"

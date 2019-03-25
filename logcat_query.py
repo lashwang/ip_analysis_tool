@@ -289,19 +289,9 @@ class QueryCmd():
         cmd = "adb shell pm list packages -f -U"
         os.system(cmd)
 
-    def screen_shot(self):
-        wx.App()  # Need to create an App instance before doing anything
-        screen = wx.ScreenDC()
-        size = screen.GetSize()
-        bmp = wx.EmptyBitmap(size[0], size[1])
-        mem = wx.MemoryDC(bmp)
-        mem.Blit(0, 0, size[0], size[1], screen, 0, 0)
-        del mem  # Release bitmap
-        bmp.SaveFile('screenshot.png', wx.BITMAP_TYPE_PNG)
-
-    def create_http_server(self):
-        pass
-
+    def list_net_ports(self):
+        cmd = "adb shell netstat -lntu"
+        os.system(cmd)
 
 def main():
     fire.Fire(QueryCmd)

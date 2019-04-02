@@ -176,9 +176,13 @@ class QueryCmd():
         build_args = get_build_args(args)
         cmd = "rm -rf {}/*.apk".format(adclear_apk_path)
         os.system(cmd)
-        cmd = "./{} assemble{} {}".format(build_cmd,default_flavor,build_args)
+        cmd = "./{} assemble{}Debug {}".format(build_cmd,default_flavor,build_args)
         print cmd
         os.system(cmd)
+
+    def build_adclear_multipleabi(self):
+        self.build_adclear("-PmultipleAbi=true")
+        pass
 
     def recreate_adclear(self,*args):
         self.build_adclear(*args)

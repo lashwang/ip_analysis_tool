@@ -162,10 +162,23 @@ class QueryCmd():
 
 
     def query_crash(self,addr):
-        cmd = "addr2line_android -p -C -i -f -e proxy/build/intermediates/ndkBuild/debug/obj/local/armeabi/libproxy.so {}".format(sys.argv[2])
+        ndk_path = os.environ['ANDROID_NDK_HOME']
+        addr2line_path = ndk_path + "/toolchains/llvm/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-addr2line"
+        lib_path = "proxy/build/intermediates/ndkBuild/debug/obj/local/armeabi/libproxy.so"
+        cmd = "{} -p -C -i -f -e {} {}".format(addr2line_path,lib_path,sys.argv[2])
         print cmd
         results = commands.getoutput(cmd)
         print results
+
+    def query_crash64(self,addr):
+        ndk_path = os.environ['ANDROID_NDK_HOME']
+        addr2line_path = ndk_path + "/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android-addr2line"
+        lib_path = "proxy/build/intermediates/ndkBuild/debug/obj/local/arm64-v8a/libproxy.so"
+        cmd = "{}  -p -C -i -f -e {} {}".format(addr2line_path,lib_path,sys.argv[2])
+        print cmd
+        results = commands.getoutput(cmd)
+        print results
+
 
     def clear_logcat(self):
         cmd = "adb logcat -c"
@@ -183,6 +196,15 @@ class QueryCmd():
     def build_adclear_multipleabi(self):
         self.build_adclear("-PmultipleAbi=true")
         pass
+
+
+    def build_adclear_asan(self):
+        self.build_adclear("-PuseAsan=true -PmultipleAbi=true")
+
+    def build_adclear_clean(self):
+        cmd = "./{} clean".format(build_cmd)
+        os.system(cmd)
+
 
     def recreate_adclear(self,*args):
         self.build_adclear(*args)
@@ -219,6 +241,25 @@ class QueryCmd():
         for file in results:
             cmd = "android-objdump -d -l -S -C {}".format(file)
             output_name = "{}.o.{}.txt".format(name,index)
+            results = commands.getoutput(cmd)
+            index = index + 1
+            with open(output_name, 'a') as the_file:
+                the_file.write(results)
+
+    def obj_dump64(self,path):
+        ndk_path = os.environ['ANDROID_NDK_HOME']
+        objdump_path = ndk_path + "/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android-objdump"
+        base = os.path.basename(path)
+        name = os.path.splitext(base)[0]
+        cmd = "find proxy/build/intermediates/ndkBuild/debug/obj/local/arm64-v8a/objs-debug/proxy/ -name {}.o".format(
+            name)
+        print cmd
+        results = commands.getoutput(cmd).splitlines()
+        print results
+        index = 1
+        for file in results:
+            cmd = "{} -d -l -S -C {}".format(objdump_path,file)
+            output_name = "{}.o.{}.txt".format(name, index)
             results = commands.getoutput(cmd)
             index = index + 1
             with open(output_name, 'a') as the_file:

@@ -14,6 +14,8 @@ import sys
 
 
 default_flavor = "adclearInternalDev"
+asan_flavor = "adclearAsanDev"
+
 
 port_query_reg_str = r"CSM\s+\[{}\].*client_src_port\s+(\d+),\s+csp_src_port\s+(\d+)"
 adclear_apk_path = "app/build/outputs/apk/{}/debug".format(default_flavor)
@@ -164,7 +166,7 @@ class QueryCmd():
     def query_crash(self,addr):
         ndk_path = os.environ['ANDROID_NDK_HOME']
         addr2line_path = ndk_path + "/toolchains/llvm/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-addr2line"
-        lib_path = "proxy/build/intermediates/ndkBuild/debug/obj/local/armeabi/libproxy.so"
+        lib_path = "proxy/build/intermediates/ndkBuild/debug/obj/local/armeabi-v7a/libproxy.so"
         cmd = "{} -p -C -i -f -e {} {}".format(addr2line_path,lib_path,sys.argv[2])
         print cmd
         results = commands.getoutput(cmd)
@@ -185,11 +187,11 @@ class QueryCmd():
         for num in range(0,5):
             os.system(cmd)
 
-    def build_adclear(self,*args):
+    def build_adclear(self,flavor=default_flavor,*args):
         build_args = get_build_args(args)
         cmd = "rm -rf {}/*.apk".format(adclear_apk_path)
         os.system(cmd)
-        cmd = "./{} assemble{}Debug {}".format(build_cmd,default_flavor,build_args)
+        cmd = "./{} assemble{}Debug {}".format(build_cmd,flavor,build_args)
         print cmd
         os.system(cmd)
 
@@ -199,7 +201,7 @@ class QueryCmd():
 
 
     def build_adclear_asan(self):
-        self.build_adclear("-PuseAsan=true -PmultipleAbi=true")
+        self.build_adclear(asan_flavor,"-PuseAsan=true -PnativeFlavor=nativeAsan")
 
     def build_adclear_clean(self):
         cmd = "./{} clean".format(build_cmd)

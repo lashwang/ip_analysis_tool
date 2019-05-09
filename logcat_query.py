@@ -196,7 +196,7 @@ class QueryCmd():
         os.system(cmd)
 
     def build_adclear_multipleabi(self):
-        self.build_adclear("-PmultipleAbi=true")
+        self.build_adclear(default_flavor,"-PmultipleAbi=true")
         pass
 
 

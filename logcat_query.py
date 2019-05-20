@@ -13,8 +13,8 @@ import platform
 import sys
 
 
-default_flavor = "adclearInternalDev"
-asan_flavor = "adclearAsanDev"
+default_flavor = "AdclearInternalDev"
+asan_flavor = "AdclearAsanDev"
 
 
 port_query_reg_str = r"CSM\s+\[{}\].*client_src_port\s+(\d+),\s+csp_src_port\s+(\d+)"

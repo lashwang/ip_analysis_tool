@@ -44,14 +44,17 @@ def find_port_info_from_netlog(line,csm_id):
 
 
 def find_host(line,saved_tables):
-    if not "find host" in line:
-        return
-    reg_str = r"CSM\s+\[(\S+)\]\s+find host\s+(\S+)"
+    '''
+    CSM [000E8009] clienthello_parse host www.google.com, c_hello_md5 36781B4C62E4D394F6F4EA1CB5FD7F97 length 508, tlsextslen 401
+    '''
+
+    reg_str = r"CSM\s+\[(\S+)\]\s+clienthello_parse host (\S+),"
     matchObj = re.search(reg_str, line)
     if matchObj:
         csm_id = matchObj.group(1)
         host = matchObj.group(2)
         saved_tables[csm_id] = host
+
 
 def find_csm(line):
     '''
@@ -69,23 +72,24 @@ def find_csm(line):
     return None
 
 
-def find_in_out_fd(line,in_fd_table,out_fd_table):
+def find_in_out_fd(line,in_fd_table,out_fd_table,in_port_table,out_port_table):
     '''
-    CSM [00068001] create IN endpoint for fd:6
-    CSM [00068001] create OUT endpoint for fd:6
+    CSM [00068001] create OUT endpoint for fd:97,port:40161
     '''
 
-    reg_str = r"\CSM\s+\[(\S+)\]\s+create (\w+) endpoint for fd:(\d+)"
+    reg_str = r"\CSM\s+\[(\S+)\]\s+create (\w+) endpoint for fd:(\d+),port:(\d+)"
     matchObj = re.search(reg_str, line)
     if matchObj:
         csm_id = matchObj.group(1)
         str = matchObj.group(2)
         fd = matchObj.group(3)
+        port = matchObj.group(4)
         if "IN" == str:
             in_fd_table[csm_id] = fd
+            in_port_table[csm_id] = port
         else:
             out_fd_table[csm_id] = fd
-
+            out_port_table[csm_id] = port
 
 
 def find_elem_hide_url(line,saved_tables):
@@ -148,21 +152,30 @@ class QueryCmd():
         thread_table = {}
         in_fd_table = {}
         out_fd_table = {}
-
+        in_port_table = {}
+        out_port_table = {}
+        host_table = {}
         with open(str(logcat_path), "r") as ins:
             for line in ins:
                 ret = find_csm(line)
                 if ret:
                     csm = ret[1]
                     thread_name = ret[0]
-                    #print "thread:" + ret[0] + ",csm:" + ret[1]
                     csm_list.append(ret[1])
                     thread_table[csm] = thread_name
-                find_in_out_fd(line,in_fd_table,out_fd_table)
+                find_in_out_fd(line,in_fd_table,out_fd_table,in_port_table,out_port_table)
+                find_host(line,host_table)
 
-        print "csm_list",csm_list
-        print "in fd table",in_fd_table
-        print "out fd table",out_fd_table
+
+        for csm_id in csm_list:
+            print "csm_id:{},in out fd:[{}:{}],in out port:[{}:{}],host:{}"\
+                .format(csm_id,
+                        in_fd_table.get(csm_id),
+                        out_fd_table.get(csm_id),
+                        in_port_table.get(csm_id),
+                        out_port_table.get(csm_id),
+                        host_table.get(csm_id),
+                        )
 
     def get_tcpdump(self):
         cmd = "rm -rf trace/ "

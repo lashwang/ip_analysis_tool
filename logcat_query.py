@@ -58,16 +58,20 @@ def find_host(line,saved_tables):
 
 def find_csm(line):
     '''
-    [tcp0] CSM [00068001] Creating Session for fd 6
+    [Native]proxy: 06-12 11:47:40.854 +0800 4468 [FT] [Session.cpp:91] (0) - [tcp0] CSM [00068004] Creating Session for fd 6
     '''
     if not "Creating Session for fd" in line:
         return None
     reg_str = r"\[(\S+)\]\s+CSM\s+\[(\S+)\]\s+Creating Session for fd"
     matchObj = re.search(reg_str, line)
+    reg_str2 = r"\[Native\]proxy: (\S+) (\S+)"
+    matchObj2 = re.search(reg_str2, line)
     if matchObj:
         thread_id = matchObj.group(1)
         csm_id = matchObj.group(2)
-        return (thread_id,csm_id)
+        date = matchObj2.group(1)
+        time = matchObj2.group(2)
+        return (thread_id,csm_id,date + " " + time)
 
     return None
 
@@ -148,7 +152,7 @@ class QueryCmd():
         '''
         [tcp0] CSM [00068001] Creating Session for fd 6
         '''
-        csm_list = []
+        csm_table = {}
         thread_table = {}
         in_fd_table = {}
         out_fd_table = {}
@@ -161,15 +165,16 @@ class QueryCmd():
                 if ret:
                     csm = ret[1]
                     thread_name = ret[0]
-                    csm_list.append(ret[1])
+                    csm_table[ret[2]] = ret[1]
                     thread_table[csm] = thread_name
                 find_in_out_fd(line,in_fd_table,out_fd_table,in_port_table,out_port_table)
                 find_host(line,host_table)
 
 
-        for csm_id in csm_list:
-            print "csm_id:{},in out fd:[{}:{}],in out port:[{}:{}],host:{}"\
-                .format(csm_id,
+        for time,csm_id in sorted(csm_table.items()):
+            print "time:{},csm_id:{},in out fd:[{:>5}:{:>5}],in out port:[{:>5}:{:>5}],host:{}"\
+                .format(time,
+                        csm_id,
                         in_fd_table.get(csm_id),
                         out_fd_table.get(csm_id),
                         in_port_table.get(csm_id),

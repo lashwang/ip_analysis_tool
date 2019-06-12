@@ -53,6 +53,40 @@ def find_host(line,saved_tables):
         host = matchObj.group(2)
         saved_tables[csm_id] = host
 
+def find_csm(line):
+    '''
+    [tcp0] CSM [00068001] Creating Session for fd 6
+    '''
+    if not "Creating Session for fd" in line:
+        return None
+    reg_str = r"\[(\S+)\]\s+CSM\s+\[(\S+)\]\s+Creating Session for fd"
+    matchObj = re.search(reg_str, line)
+    if matchObj:
+        thread_id = matchObj.group(1)
+        csm_id = matchObj.group(2)
+        return (thread_id,csm_id)
+
+    return None
+
+
+def find_in_out_fd(line,in_fd_table,out_fd_table):
+    '''
+    CSM [00068001] create IN endpoint for fd:6
+    CSM [00068001] create OUT endpoint for fd:6
+    '''
+
+    reg_str = r"\CSM\s+\[(\S+)\]\s+create (\w+) endpoint for fd:(\d+)"
+    matchObj = re.search(reg_str, line)
+    if matchObj:
+        csm_id = matchObj.group(1)
+        str = matchObj.group(2)
+        fd = matchObj.group(3)
+        if "IN" == str:
+            in_fd_table[csm_id] = fd
+        else:
+            out_fd_table[csm_id] = fd
+
+
 
 def find_elem_hide_url(line,saved_tables):
     '''
@@ -108,22 +142,27 @@ class QueryCmd():
 
     def list_traffic(self,logcat_path="logcat.log"):
         '''
-        CSM [0009801C] find host m.youtube.com
+        [tcp0] CSM [00068001] Creating Session for fd 6
         '''
-        hosts_table = {}
-        elmhide_url_table = {}
-        hack_type_table = {}
+        csm_list = []
+        thread_table = {}
+        in_fd_table = {}
+        out_fd_table = {}
+
         with open(str(logcat_path), "r") as ins:
             for line in ins:
-                find_host(line,hosts_table)
-                find_elem_hide_url(line,elmhide_url_table)
-                find_body_hack_type(line,hack_type_table)
-        for key,value in hosts_table.iteritems():
-            hack_type = hack_type_table.get(key,0)
-            url = elmhide_url_table.get(key,"")
-            if hack_type > 0:
-                print "{} -> host:{},hack_type:{},url:{}".format(key,value,hack_type,url)
+                ret = find_csm(line)
+                if ret:
+                    csm = ret[1]
+                    thread_name = ret[0]
+                    #print "thread:" + ret[0] + ",csm:" + ret[1]
+                    csm_list.append(ret[1])
+                    thread_table[csm] = thread_name
+                find_in_out_fd(line,in_fd_table,out_fd_table)
 
+        print "csm_list",csm_list
+        print "in fd table",in_fd_table
+        print "out fd table",out_fd_table
 
     def get_tcpdump(self):
         cmd = "rm -rf trace/ "
@@ -191,12 +230,12 @@ class QueryCmd():
         build_args = get_build_args(args)
         cmd = "rm -rf {}/*.apk".format(adclear_apk_path)
         os.system(cmd)
-        cmd = "./{} assemble{}Debug {}".format(build_cmd,flavor,build_args)
+        cmd = "./{} assemble{}Debug -PnativeFlavor=nativeNoCrashCollect {}".format(build_cmd,flavor,build_args)
         print cmd
         os.system(cmd)
 
     def build_adclear_multipleabi(self):
-        self.build_adclear(default_flavor,"-PmultipleAbi=true")
+        self.build_adclear(default_flavor," -PnativeFlavor=nativeNoCrashCollect -PmultipleAbi=true")
         pass
 
 

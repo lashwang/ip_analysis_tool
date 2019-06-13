@@ -172,8 +172,9 @@ class QueryCmd():
 
 
         for time,csm_id in sorted(csm_table.items()):
-            print "time:{},csm_id:{},in out fd:[{:>5}:{:>5}],in out port:[{:>5}:{:>5}],host:{}"\
+            print "time:{},thread:{},csm_id:{},in out fd:[{:>5}:{:>5}],in out port:[{:>5}:{:>5}],host:{}"\
                 .format(time,
+                        thread_table[csm_id],
                         csm_id,
                         in_fd_table.get(csm_id),
                         out_fd_table.get(csm_id),
